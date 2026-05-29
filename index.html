@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>기사 읽어주기 🎙</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d0b1e;
+  --card:rgba(255,255,255,.07);
+  --brd:rgba(167,139,250,.22);
+  --brd2:rgba(167,139,250,.55);
+  --ac:#7c3aed;--ac2:#4f46e5;
+  --hi:#c4b5fd;--hi2:#818cf8;--sky:#38bdf8;
+  --tx:#f0eefc;--mu:#94a3b8;--mu2:#64748b;
+  --red:rgba(239,68,68,.13);--rbrd:rgba(239,68,68,.38);--rtx:#fca5a5;
+  --grn:rgba(34,197,94,.12);--gbrd:rgba(34,197,94,.32);--gtx:#86efac;
+  --ylw:rgba(251,191,36,.10);--ybrd:rgba(251,191,36,.32);--ytx:#fde68a;
+}
+html,body{min-height:100vh}
+body{
+  background:
+    radial-gradient(ellipse at 12% 0%,rgba(124,58,237,.42) 0%,transparent 50%),
+    radial-gradient(ellipse at 88% 100%,rgba(79,70,229,.28) 0%,transparent 50%),
+    linear-gradient(160deg,#0d0b1e 0%,#12103a 100%);
+  font-family:'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  color:var(--tx);
+  display:flex;flex-direction:column;align-items:center;
+  padding:28px 14px 80px;
+}
+/* ── HEADER ── */
+.hd{text-align:center;margin-bottom:26px}
+.hd-ey{font-size:9px;letter-spacing:5px;color:var(--hi);text-transform:uppercase;margin-bottom:6px;opacity:.7}
+.hd-ti{
+  font-size:30px;font-weight:900;line-height:1.2;margin-bottom:6px;
+  background:linear-gradient(110deg,#c4b5fd 0%,#818cf8 45%,#38bdf8 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.hd-su{color:var(--mu);font-size:12px}
+/* ── CARD ── */
+.card{width:100%;max-width:560px;background:var(--card);border:1px solid var(--brd);border-radius:18px;padding:16px;margin-bottom:12px}
+.clbl{font-size:9px;color:var(--hi);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;opacity:.75}
+/* ── URL INPUT ── */
+.url-wrap{
+  width:100%;max-width:560px;
+  display:flex;gap:8px;align-items:center;
+  background:var(--card);border:1px solid var(--brd);
+  border-radius:16px;padding:8px 8px 8px 14px;margin-bottom:12px;
+  transition:border-color .2s,box-shadow .2s;
+}
+.url-wrap:focus-within{border-color:var(--brd2);box-shadow:0 0 0 3px rgba(124,58,237,.15)}
+.url-icon{font-size:16px;color:var(--hi);flex-shrink:0}
+#urlInput{
+  flex:1;min-width:0;background:transparent;border:none;outline:none;
+  color:var(--tx);font-size:13px;font-family:inherit;padding:10px 0;
+}
+#urlInput::placeholder{color:var(--mu2)}
+.add-btn{
+  background:linear-gradient(135deg,var(--ac),var(--ac2));
+  border:none;border-radius:10px;
+  width:44px;height:44px;flex-shrink:0;
+  color:#fff;font-size:22px;font-weight:900;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:all .2s;
+}
+.add-btn:active{transform:scale(.93)}
+/* ── BTNS ── */
+.btn{
+  border:none;border-radius:14px;padding:14px;
+  width:100%;max-width:560px;
+  color:#fff;font-weight:700;font-size:14px;font-family:inherit;
+  cursor:pointer;transition:all .2s;display:block;margin-bottom:8px;
+}
+.btn-pri{background:linear-gradient(135deg,var(--ac),var(--ac2));box-shadow:0 4px 18px rgba(124,58,237,.38)}
+.btn-sec{background:var(--card);border:1px solid var(--brd);color:var(--mu)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn:not(:disabled):active{transform:scale(.98)}
+/* ── QUEUE ── */
+.q-empty{
+  width:100%;max-width:560px;
+  border:1px dashed rgba(167,139,250,.2);border-radius:16px;
+  padding:28px;text-align:center;color:var(--mu2);font-size:13px;margin-bottom:12px;
+}
+.q-list{width:100%;max-width:560px;display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.q-item{
+  background:var(--card);border:1px solid var(--brd);
+  border-radius:14px;padding:12px 14px;
+  display:flex;align-items:center;gap:10px;
+  transition:all .3s;animation:slideIn .25s ease-out;
+}
+.q-item.active{background:rgba(124,58,237,.18);border-color:rgba(124,58,237,.5);box-shadow:0 0 14px rgba(124,58,237,.22)}
+.q-item.done{opacity:.4}
+.q-item.err{background:var(--red);border-color:var(--rbrd)}
+.q-badge{
+  width:26px;height:26px;border-radius:50%;flex-shrink:0;
+  background:rgba(167,139,250,.15);color:var(--hi);
+  font-size:11px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+}
+.q-item.active .q-badge{background:var(--ac);color:#fff;animation:pulse 1.5s infinite}
+.q-info{flex:1;min-width:0}
+.q-title{font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:2px}
+.q-item.active .q-title{color:var(--hi)}
+.q-item.done .q-title{color:var(--mu)}
+.q-url{font-size:10px;color:var(--mu2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.q-err-msg{font-size:10px;color:var(--rtx);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.q-st{font-size:15px;flex-shrink:0}
+.q-del{
+  background:rgba(239,68,68,.12);border:none;border-radius:7px;
+  color:var(--rtx);font-size:12px;padding:5px 9px;
+  cursor:pointer;flex-shrink:0;font-family:inherit;transition:background .2s;
+}
+.q-del:hover{background:rgba(239,68,68,.28)}
+/* ── SPINNER ── */
+.spin{display:inline-block;width:13px;height:13px;border-radius:50%;border:2px solid rgba(167,139,250,.2);border-top:2px solid var(--hi);animation:spin .8s linear infinite;vertical-align:middle}
+/* ── PLAYER ── */
+.player{
+  width:100%;max-width:560px;
+  background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.27);
+  border-radius:20px;padding:18px;margin-bottom:10px;
+}
+.pl-label{font-size:9px;color:var(--hi);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;opacity:.7}
+.pl-title{font-size:15px;font-weight:700;line-height:1.45;margin-bottom:14px}
+.pl-word{font-size:22px;font-weight:700;color:var(--hi);text-align:center;min-height:30px;transition:all .1s}
+/* ── PROGRESS ── */
+.prog-wrap{width:100%;max-width:560px;height:6px;background:rgba(255,255,255,.08);border-radius:10px;margin-bottom:16px;overflow:hidden}
+.prog-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--ac),var(--sky));border-radius:10px;transition:width .4s}
+/* ── CONTROLS ── */
+.ctrls{display:flex;justify-content:center;align-items:center;gap:12px;margin-bottom:14px;width:100%;max-width:560px}
+.cb{
+  border-radius:50%;border:1px solid var(--brd);
+  background:var(--card);color:var(--hi2);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;
+  flex-shrink:0;
+}
+.cb:active{transform:scale(.9)}
+.cb.xs{width:42px;height:42px;font-size:16px}
+.cb.sm{width:52px;height:52px;font-size:20px}
+.cb.lg{width:70px;height:70px;font-size:28px;background:linear-gradient(135deg,var(--ac),var(--ac2));color:#fff;border:none;box-shadow:0 0 22px rgba(124,58,237,.5)}
+/* ── SPEED ── */
+.spd-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.sb{padding:8px 0;border-radius:9px;border:none;background:rgba(255,255,255,.07);color:var(--mu);font-size:10px;font-family:inherit;cursor:pointer;transition:all .2s}
+.sb.on{background:linear-gradient(135deg,var(--ac),var(--ac2));color:#fff;font-weight:700}
+.rbw{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.pill{font-size:11px;font-weight:700;color:var(--hi);background:rgba(167,139,250,.15);padding:3px 11px;border-radius:20px}
+/* ── VOICE ── */
+.v-list{display:flex;flex-direction:column;gap:6px;max-height:200px;overflow-y:auto}
+.v-list::-webkit-scrollbar{width:3px}
+.v-list::-webkit-scrollbar-thumb{background:rgba(167,139,250,.3);border-radius:3px}
+.vb{
+  padding:9px 13px;border-radius:10px;border:1px solid transparent;
+  background:rgba(255,255,255,.05);color:var(--mu);font-size:12px;font-family:inherit;
+  cursor:pointer;text-align:left;transition:all .2s;display:flex;align-items:center;gap:6px;
+}
+.vb.on{background:rgba(124,58,237,.22);border-color:rgba(124,58,237,.5);color:var(--hi)}
+.vbadge{font-size:9px;padding:1px 6px;border-radius:8px;flex-shrink:0}
+.vbadge.f{background:rgba(236,72,153,.2);color:#f9a8d4}
+.vbadge.k{background:rgba(59,130,246,.15);color:#93c5fd}
+/* ── ANNOUNCE ── */
+.ann{
+  width:100%;max-width:560px;
+  background:var(--grn);border:1px solid var(--gbrd);
+  border-radius:14px;padding:12px 16px;
+  color:var(--gtx);font-size:13px;font-weight:700;
+  margin-bottom:10px;text-align:center;animation:slideIn .3s ease-out;
+}
+/* ── MSG ── */
+.msg{width:100%;max-width:560px;border-radius:12px;padding:11px 14px;font-size:12px;margin-bottom:10px;line-height:1.7;display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.msg-e{background:var(--red);border:1px solid var(--rbrd);color:var(--rtx)}
+.msg-w{background:var(--ylw);border:1px solid var(--ybrd);color:var(--ytx)}
+.msg button{background:none;border:none;cursor:pointer;font-size:15px;line-height:1;flex-shrink:0;padding:0}
+/* ── UTIL ── */
+.dn{display:none!important}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes slideIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.pulsing{animation:pulse 1.3s ease-in-out infinite}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hd">
+  <div class="hd-ey">Article Reader</div>
+  <div class="hd-ti">기사 읽어주기 🎙</div>
+  <div class="hd-su">여러 기사를 모아 연속으로 들으세요</div>
+</div>
+
+<!-- TTS 경고 -->
+<div class="msg msg-w dn" id="ttsWarn">
+  <span>⚠️ 음성 미지원 브라우저입니다. Chrome 또는 Safari를 이용해주세요.</span>
+</div>
+
+<!-- URL 입력 -->
+<div class="url-wrap">
+  <span class="url-icon">🔗</span>
+  <input id="urlInput" type="url" placeholder="기사 URL 붙여넣기 후 ＋ 추가" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+  <button class="add-btn" onclick="addUrl()">＋</button>
+</div>
+
+<!-- 에러 -->
+<div class="msg msg-e dn" id="errMsg">
+  <span id="errTxt"></span>
+  <button onclick="hideErr()" style="color:var(--rtx)">✕</button>
+</div>
+
+<!-- 큐 비어있음 -->
+<div class="q-empty" id="qEmpty">
+  <div style="font-size:36px;margin-bottom:10px">📋</div>
+  URL을 추가하면 여기에 목록이 표시됩니다
+</div>
+
+<!-- 큐 목록 -->
+<div class="q-list" id="qList"></div>
+
+<!-- 전체재생/삭제 버튼 -->
+<div id="qActions" class="dn" style="width:100%;max-width:560px">
+  <button class="btn btn-pri" id="playAllBtn" onclick="loadAndPlay(0)">▶ 전체 불러오기 &amp; 재생</button>
+  <button class="btn btn-sec" onclick="clearAll()">🗑 전체 삭제</button>
+</div>
+
+<!-- 완료 안내 -->
+<div class="ann dn" id="ann"></div>
+
+<!-- 플레이어 -->
+<div class="player dn" id="player">
+  <div class="pl-label">🔊 현재 재생 중</div>
+  <div class="pl-title" id="plTitle">—</div>
+  <div class="pl-word" id="plWord">▶ 재생 버튼을 누르세요</div>
+</div>
+
+<!-- 진행 바 -->
+<div class="prog-wrap dn" id="progWrap"><div class="prog-fill" id="progFill"></div></div>
+
+<!-- 컨트롤 -->
+<div class="ctrls dn" id="ctrls">
+  <button class="cb xs" onclick="prevArt()" title="이전">⏮</button>
+  <button class="cb sm" onclick="stopAll()" title="정지">⏹</button>
+  <button class="cb lg" id="playBtn" onclick="togglePlay()">▶</button>
+  <button class="cb sm" onclick="nextArt()" title="다음">⏭</button>
+  <button class="cb xs" onclick="restartCur()" title="처음부터">🔄</button>
+</div>
+
+<!-- 속도 -->
+<div class="card dn" id="spdCard">
+  <div class="rbw">
+    <span style="font-size:12px;color:var(--mu)">🐢 재생 속도</span>
+    <span class="pill" id="spdLbl">보통 1.0x</span>
+  </div>
+  <div class="spd-grid">
+    <button class="sb" onclick="setSpd(this,.5)">0.5x</button>
+    <button class="sb" onclick="setSpd(this,.75)">0.75x</button>
+    <button class="sb on" onclick="setSpd(this,1)">1.0x</button>
+    <button class="sb" onclick="setSpd(this,1.25)">1.25x</button>
+    <button class="sb" onclick="setSpd(this,1.5)">1.5x</button>
+    <button class="sb" onclick="setSpd(this,1.75)">1.75x</button>
+    <button class="sb" onclick="setSpd(this,2)">2.0x</button>
+  </div>
+</div>
+
+<!-- 목소리 -->
+<div class="card dn" id="vCard">
+  <div class="clbl">🎙 목소리 선택</div>
+  <div class="v-list" id="vList"></div>
+</div>
+
+<script>
+/* ══════════════════════════════
+   STATE
+══════════════════════════════ */
+let Q = [];        // 큐 배열
+let curIdx = -1;
+let isOn = false;
+let isPaused = false;
+let spd = 1.0;
+let selVoice = null;
+let allVoices = [];
+let utter = null;
+let progTmr = null;
+let uid = 0;
+
+const SN = {.5:'아주느림',.75:'느리게',1:'보통',1.25:'약간빠름',1.5:'빠름',1.75:'더빠름',2:'최고속'};
+const SI = {pending:'⬜',loading:'',ready:'✅',done:'🔵',error:'❌'};
+const FEMALE_KW = ['yuna','유나','heami','혜미','sunhi','선희','sora','소라','female','여성','google 한국의','nari','나리'];
+
+/* ══════════════════════════════
+   INIT
+══════════════════════════════ */
+(function(){
+  if(!window.speechSynthesis){ show('ttsWarn'); }
+
+  function loadVoices(){
+    const all = speechSynthesis.getVoices();
+    if(!all.length) return;
+    allVoices = all;
+    const ko = all.filter(v => v.lang?.startsWith('ko'));
+    const femKo = ko.filter(v => FEMALE_KW.some(k => v.name.toLowerCase().includes(k)));
+    // 기본 선택: 한국어 여성 → 한국어 → 전체
+    if(!selVoice) selVoice = (femKo[0] || ko[0] || all[0]) || null;
+    renderVoices();
+  }
+  loadVoices();
+  speechSynthesis.onvoiceschanged = loadVoices;
+
+  // 저장된 큐 복원
+  try {
+    const saved = localStorage.getItem('arq_v2');
+    if(saved){
+      Q = JSON.parse(saved).map(x=>({...x, status: x.status==='loading'?'pending':x.status}));
+      renderQ();
+    }
+  } catch(_){}
+
+  document.getElementById('urlInput').addEventListener('keydown', e => {
+    if(e.key==='Enter') addUrl();
+  });
+})();
+
+function saveQ(){ try{ localStorage.setItem('arq_v2', JSON.stringify(Q)); }catch(_){} }
+
+/* ══════════════════════════════
+   VOICES
+══════════════════════════════ */
+function renderVoices(){
+  const ko = allVoices.filter(v=>v.lang?.startsWith('ko'));
+  const ot = allVoices.filter(v=>!v.lang?.startsWith('ko'));
+  const list = [...ko,...ot].slice(0,30);
+  if(list.length < 2){ hide('vCard'); return; }
+  $('vList').innerHTML = list.map(v=>{
+    const iF = FEMALE_KW.some(k=>v.name.toLowerCase().includes(k));
+    const iK = v.lang?.startsWith('ko');
+    const badge = iF ? '<span class="vbadge f">여성</span>' : iK ? '<span class="vbadge k">한국어</span>' : '';
+    const on = selVoice?.name===v.name;
+    return `<button class="vb${on?' on':''}" onclick="pickV('${v.name.replace(/'/g,"\\'")}')">
+      ${on?'✓ ':''}<span style="flex:1">${v.name} <span style="opacity:.35;font-size:10px">${v.lang}</span></span>${badge}
+    </button>`;
+  }).join('');
+  show2('vCard');
+}
+
+function pickV(name){
+  selVoice = allVoices.find(v=>v.name===name) || selVoice;
+  renderVoices();
+  if(isOn) restartCur();
+}
+
+/* ══════════════════════════════
+   URL FETCH + HTML PARSE
+══════════════════════════════ */
+async function fetchArticle(url){
+  // CORS 프록시 순차 시도
+  const proxies = [
+    { u: `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`, json: true },
+    { u: `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`, json: false },
+    { u: `https://corsproxy.io/?${encodeURIComponent(url)}`, json: false },
+    { u: `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`, json: false },
+  ];
+
+  let html = '', lastErr = '';
+  for(const p of proxies){
+    try{
+      const ctrl = new AbortController();
+      const tid = setTimeout(()=>ctrl.abort(), 13000);
+      const r = await fetch(p.u, {signal:ctrl.signal});
+      clearTimeout(tid);
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      html = p.json ? (await r.json()).contents||'' : await r.text();
+      if(html && html.length > 300) break;
+    }catch(e){ lastErr=e.message; html=''; continue; }
+  }
+
+  if(!html || html.length < 300)
+    throw new Error('페이지를 불러올 수 없습니다 ('+lastErr+')\n로그인 필요 또는 차단된 사이트일 수 있습니다.');
+
+  return parseHtml(html, url);
+}
+
+function parseHtml(html, url){
+  const dp = new DOMParser();
+  const doc = dp.parseFromString(html, 'text/html');
+
+  // 노이즈 제거
+  ['script','style','nav','header','footer','aside','iframe','noscript',
+   '[class*="banner"]','[class*="sidebar"]','[class*="comment"]','[class*="share"]',
+   '[class*="social"]','[class*="related"]','[class*="recommend"]','[class*="popup"]',
+   '[class*="gnb"]','[class*="lnb"]','[id*="comment"]','[class*="ad"]',
+   '.se-image-container','.se-video-container','.se-module-oglink',
+  ].forEach(s=>{ try{ doc.querySelectorAll(s).forEach(e=>e.remove()); }catch(_){} });
+
+  // 제목
+  const title = (
+    doc.querySelector('meta[property="og:title"]')?.getAttribute('content') ||
+    doc.querySelector('meta[name="title"]')?.getAttribute('content') ||
+    doc.querySelector('h1')?.textContent ||
+    doc.querySelector('title')?.textContent || '(제목 없음)'
+  ).replace(/\s+/g,' ').trim();
+
+  // 본문 셀렉터 우선순위
+  const sels = [
+    '#articleBodyContents','#articeBody','.article_body','.article-body',
+    '.article_content','.article-content','[itemprop="articleBody"]',
+    '.news_end_body','.se-main-container','#postViewArea','.post-view',
+    '.entry-content','.article-view','[class*="tt_article"]',
+    '[class*="content-body"]','[class*="post-content"]','[class*="story-content"]',
+    'td[class*="content"]','article','main','[role="main"]',
+    '#content','.content','.container','body'
+  ];
+
+  let best = null, bestLen = 0;
+  for(const s of sels){
+    try{
+      doc.querySelectorAll(s).forEach(el=>{
+        const len = (el.textContent||'').replace(/\s+/g,' ').trim().length;
+        if(len > bestLen && len > 200){ bestLen=len; best=el; }
+      });
+      if(best && bestLen > 800) break;
+    }catch(_){}
+  }
+  if(!best) best = doc.body;
+
+  // 단락 우선 추출
+  let text = '';
+  const paras = best.querySelectorAll('p,h2,h3,h4,li,.se-text-paragraph');
+  if(paras.length >= 3){
+    text = Array.from(paras).map(p=>p.textContent.trim()).filter(t=>t.length>15).join(' ');
+  }
+  if(text.length < 300) text = best.textContent || '';
+
+  text = text.replace(/[\u200B-\u200D\uFEFF]/g,'').replace(/\s+/g,' ').trim();
+  if(text.length < 80)
+    throw new Error('본문을 찾을 수 없습니다. 이 사이트는 지원되지 않을 수 있습니다.');
+
+  return { title, content: text.slice(0, 8000) };
+}
+
+/* ══════════════════════════════
+   QUEUE MANAGEMENT
+══════════════════════════════ */
+function addUrl(){
+  const raw = $('urlInput').value.trim();
+  if(!raw) return;
+  const url = raw.startsWith('http') ? raw : 'https://'+raw;
+  if(Q.find(q=>q.url===url)){ showErr('이미 추가된 URL입니다.'); return; }
+  Q.push({id:++uid, url, title:shortHost(url), content:'', status:'pending', err:''});
+  $('urlInput').value = '';
+  hideErr();
+  renderQ();
+  saveQ();
+}
+
+function removeItem(id){
+  const i = Q.findIndex(q=>q.id===id);
+  if(i===curIdx) stopAll();
+  Q.splice(i,1);
+  if(curIdx>i && curIdx>0) curIdx--;
+  renderQ();
+  saveQ();
+}
+
+function clearAll(){
+  stopAll();
+  Q = []; curIdx = -1;
+  renderQ();
+  saveQ();
+  hidePlayer();
+}
+
+function renderQ(){
+  const empty = Q.length===0;
+  $('qEmpty').style.display = empty ? 'block' : 'none';
+  $('qActions').style.display = empty ? 'none' : 'block';
+
+  $('qList').innerHTML = Q.map((q,i)=>{
+    const active = i===curIdx && isOn;
+    const cls = ['q-item', active?'active':'', q.status==='done'?'done':'', q.status==='error'?'err':''].filter(Boolean).join(' ');
+    const stHtml = q.status==='loading'
+      ? `<span class="spin"></span>`
+      : `<span class="q-st">${SI[q.status]||'⬜'}</span>`;
+    const errLine = q.status==='error' ? `<div class="q-err-msg">${q.err.slice(0,60)}</div>` : '';
+    const loadLine = q.status==='loading' ? `<div class="q-err-msg" style="color:var(--hi)">불러오는 중...</div>` : '';
+    return `<div class="${cls}">
+      <div class="q-badge">${active?'♪':(i+1)}</div>
+      <div class="q-info">
+        <div class="q-title">${esc(q.title.length>44?q.title.slice(0,44)+'…':q.title)}</div>
+        ${errLine}${loadLine}
+        <div class="q-url">${q.url.slice(0,50)}</div>
+      </div>
+      ${stHtml}
+      <button class="q-del" onclick="removeItem(${q.id})">✕</button>
+    </div>`;
+  }).join('');
+}
+
+/* ══════════════════════════════
+   LOAD & PLAY
+══════════════════════════════ */
+async function loadAndPlay(startIdx){
+  const btn = $('playAllBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ 불러오는 중...';
+  hideErr();
+
+  for(let i=startIdx; i<Q.length; i++){
+    if(Q[i].status !== 'pending') continue;
+    Q[i].status = 'loading';
+    renderQ();
+    try{
+      const art = await fetchArticle(Q[i].url);
+      Q[i].title = art.title;
+      Q[i].content = art.content;
+      Q[i].status = 'ready';
+    }catch(e){
+      Q[i].status = 'error';
+      Q[i].err = e.message;
+    }
+    renderQ();
+    saveQ();
+  }
+
+  btn.disabled = false;
+  btn.textContent = '▶ 전체 불러오기 & 재생';
+
+  const first = Q.findIndex((q,i)=>i>=startIdx && q.status==='ready');
+  if(first !== -1) playAt(first, true);
+  else showErr('불러올 수 있는 기사가 없습니다.\nURL이 차단됐거나 로그인이 필요한 사이트일 수 있습니다.');
+}
+
+/* ══════════════════════════════
+   TTS
+══════════════════════════════ */
+function playAt(idx, autoNext){
+  if(!speechSynthesis) return;
+  const q = Q[idx];
+  if(!q?.content) return;
+
+  speechSynthesis.cancel();
+  if(progTmr) clearInterval(progTmr);
+
+  curIdx = idx;
+  isOn = true; isPaused = false;
+  const text = q.title + '. ' + q.content;
+  const words = text.split(/\s+/);
+
+  $('plTitle').textContent = q.title;
+  setWord('🔊 읽는 중...', true);
+  showPlayer();
+  setProg(0);
+  renderQ();
+
+  const u = new SpeechSynthesisUtterance(text);
+  if(selVoice) u.voice = selVoice;
+  u.rate = spd; u.lang = 'ko-KR';
+  utter = u;
+
+  u.onboundary = e=>{
+    if(e.name!=='word') return;
+    const ci=e.charIndex, cl=e.charLength||1;
+    const wc = text.slice(0,ci+cl).split(/\s+/).length;
+    setProg(Math.min(99, wc/words.length*100));
+    setWord(text.slice(ci,ci+cl), true);
+  };
+
+  // iOS 진행률 타이머 보완
+  let tv=0;
+  const ms = text.length*210/spd;
+  progTmr = setInterval(()=>{
+    tv = Math.min(95, tv+100/(ms/500));
+    const cur = parseFloat($('progFill').style.width||'0');
+    if(cur<2) setProg(tv);
+  }, 500);
+
+  u.onend = ()=>{
+    clearInterval(progTmr);
+    setProg(100); setWord('✅ 완료!', false);
+    isOn=false; isPaused=false; updBtn();
+    Q[curIdx].status = 'done';
+    renderQ(); saveQ();
+
+    if(!autoNext) return;
+    const ni = Q.findIndex((q,i)=>i>idx && q.status==='ready');
+    if(ni !== -1){
+      const nxt = Q[ni];
+      showAnn(`✅ 완료 → 다음: ${nxt.title}`);
+      const ann = new SpeechSynthesisUtterance(
+        `기사를 다 읽었습니다. 다음으로 ${nxt.title} 기사로 넘어갑니다.`
+      );
+      if(selVoice) ann.voice=selVoice;
+      ann.rate=spd; ann.lang='ko-KR';
+      ann.onend = ()=>{ hideAnn(); playAt(ni,true); };
+      ann.onerror = ()=>{ hideAnn(); playAt(ni,true); };
+      speechSynthesis.speak(ann);
+    } else {
+      showAnn('🎉 모든 기사 읽기 완료!');
+      setTimeout(hideAnn, 3500);
+    }
+  };
+  u.onerror = e=>{
+    clearInterval(progTmr);
+    if(e.error==='interrupted'||e.error==='canceled') return;
+    isOn=false; isPaused=false;
+    setWord('오류 — 다시 시도해주세요', false);
+    updBtn();
+  };
+  speechSynthesis.speak(u);
+  updBtn();
+}
+
+function togglePlay(){
+  if(!speechSynthesis) return;
+  if(!isOn){
+    if(curIdx>=0 && Q[curIdx]?.status==='ready') playAt(curIdx,true);
+    else loadAndPlay(0);
+  } else if(isPaused){
+    speechSynthesis.resume(); isPaused=false; updBtn();
+  } else {
+    speechSynthesis.pause(); isPaused=true; updBtn();
+    setWord('⏸ 일시정지', false);
+  }
+}
+
+function stopAll(){
+  if(speechSynthesis) speechSynthesis.cancel();
+  if(progTmr) clearInterval(progTmr);
+  isOn=false; isPaused=false;
+  setWord('▶ 재생 버튼을 누르세요', false);
+  setProg(0); updBtn(); hideAnn(); renderQ();
+}
+
+function nextArt(){
+  const ni = Q.findIndex((q,i)=>i>curIdx && (q.status==='ready'||q.status==='pending'));
+  if(ni!==-1){ stopAll(); loadAndPlay(ni); }
+}
+function prevArt(){
+  for(let i=curIdx-1;i>=0;i--){
+    if(Q[i].status!=='error'){
+      if(Q[i].status==='done') Q[i].status='ready';
+      stopAll(); setTimeout(()=>playAt(i,true),100); return;
+    }
+  }
+}
+function restartCur(){
+  if(curIdx>=0 && Q[curIdx]){
+    if(Q[curIdx].status==='done') Q[curIdx].status='ready';
+    stopAll(); setTimeout(()=>playAt(curIdx,true),100);
+  }
+}
+function setSpd(btn,v){
+  spd=v;
+  document.querySelectorAll('.sb').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  $('spdLbl').textContent=(SN[v]||v+'x')+' '+v+'x';
+  if(isOn) restartCur();
+}
+
+/* ══════════════════════════════
+   UI HELPERS
+══════════════════════════════ */
+function showPlayer(){
+  $('player').classList.remove('dn');
+  $('progWrap').classList.remove('dn');
+  $('ctrls').classList.remove('dn');
+  $('spdCard').classList.remove('dn');
+}
+function hidePlayer(){
+  ['player','progWrap','ctrls','spdCard'].forEach(id=>$('dn_'+id)||$(id).classList.add('dn'));
+}
+function setProg(v){ $('progFill').style.width=v+'%'; }
+function updBtn(){ $('playBtn').textContent=(isOn&&!isPaused)?'⏸':'▶'; }
+function setWord(t,pulse){
+  const el=$('plWord'); el.textContent=t;
+  pulse?el.classList.add('pulsing'):el.classList.remove('pulsing');
+}
+function showAnn(m){ const e=$('ann'); e.textContent=m; e.classList.remove('dn'); }
+function hideAnn(){ $('ann').classList.add('dn'); }
+function showErr(m){ $('errTxt').textContent=m; $('errMsg').classList.remove('dn'); }
+function hideErr(){ $('errMsg').classList.add('dn'); }
+function show(id){ $(id).classList.remove('dn'); }
+function show2(id){ $(id).classList.remove('dn'); }
+function hide(id){ $(id).classList.add('dn'); }
+function $(id){ return document.getElementById(id); }
+function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function shortHost(url){ try{return new URL(url).hostname.replace('www.','')}catch{return url.slice(0,30)} }
+</script>
+</body>
+</html>
