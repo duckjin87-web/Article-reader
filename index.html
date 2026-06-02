@@ -27,7 +27,7 @@
   --grn:rgba(34,197,94,.12);  --gbrd:rgba(34,197,94,.32);  --gtx:#86efac;
   --ylw:rgba(251,191,36,.10); --ybrd:rgba(251,191,36,.32); --ytx:#fde68a;
   --gold:#fbbf24;
-  --player-h:192px;
+  --player-h:204px;
 }
 
 html,body{
@@ -257,9 +257,7 @@ body{
   padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));
   backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px);
   z-index:200;
-  transform:translateY(100%); transition:transform .3s ease;
 }
-.player-bar.show{transform:translateY(0)}
 
 .pl-top{display:flex; align-items:center; gap:8px; margin-bottom:7px}
 .pl-title{
@@ -430,7 +428,7 @@ body{
 
   <!-- 기사 제목 + 저장/공유 버튼 -->
   <div class="pl-top">
-    <div class="pl-title" id="plTitle">—</div>
+    <div class="pl-title" id="plTitle">기사를 추가하고 재생을 눌러주세요</div>
     <button class="pl-icon-btn" id="saveBtn"
       onclick="saveCurrentArticle()" title="저장" style="color:var(--mu)">☆</button>
     <button class="pl-icon-btn" id="shareNowBtn"
@@ -628,31 +626,68 @@ function pickVoice(name){
 /* ══════════════════════════════════════
    ARTICLE FETCH & PARSE
 ══════════════════════════════════════ */
-async function fetchArticle(url){
-  const proxies = [
-    { u:`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`, json:true  },
-    { u:`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`, json:false },
-    { u:`https://corsproxy.io/?${encodeURIComponent(url)}`,              json:false },
-    { u:`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`, json:false },
-  ];
 
-  let html = '', lastErr = '';
-  for(const p of proxies){
-    try{
-      const ctrl = new AbortController();
-      const tid  = setTimeout(() => ctrl.abort(), 13000);
-      const res  = await fetch(p.u, { signal: ctrl.signal });
-      clearTimeout(tid);
-      if(!res.ok) throw new Error('HTTP ' + res.status);
-      html = p.json ? (await res.json()).contents || '' : await res.text();
-      if(html && html.length > 300) break;
-    }catch(e){ lastErr = e.message; html = ''; }
+function preprocessUrl(url){
+  // 네이버 블로그: 모바일 URL이 프록시 통과율 높음
+  return url.replace(/^https?:\/\/blog\.naver\.com/, 'https://m.blog.naver.com');
+}
+
+async function fetchWithTimeout(url, ms){
+  const ctrl = new AbortController();
+  const tid  = setTimeout(() => ctrl.abort(), ms);
+  try{
+    const r = await fetch(url, { signal: ctrl.signal });
+    clearTimeout(tid);
+    return r;
+  }catch(e){ clearTimeout(tid); throw e; }
+}
+
+// 여러 프록시를 동시에 시도하고 가장 먼저 성공한 결과 반환
+async function raceProxies(url){
+  const enc = encodeURIComponent(url);
+  async function tryOne(proxyUrl, isJson){
+    const r = await fetchWithTimeout(proxyUrl, 12000);
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    const html = isJson ? (await r.json()).contents || '' : await r.text();
+    if(!html || html.length < 300) throw new Error('응답이 너무 짧음');
+    return html;
   }
+  const attempts = [
+    tryOne(`https://api.allorigins.win/get?url=${enc}`, true),
+    tryOne(`https://corsproxy.io/?${enc}`, false),
+    tryOne(`https://api.codetabs.com/v1/proxy?quest=${enc}`, false),
+    tryOne(`https://api.allorigins.win/raw?url=${enc}`, false),
+  ];
+  return new Promise(resolve => {
+    let failed = 0;
+    attempts.forEach(p => {
+      p.then(html => resolve(html)).catch(() => {
+        if(++failed === attempts.length) resolve('');
+      });
+    });
+  });
+}
 
+async function fetchArticle(url){
+  const purl = preprocessUrl(url);
+
+  // 1순위: 자체 Vercel 서버리스 프록시 (배포 시 가장 안정적)
+  try{
+    const r = await fetchWithTimeout('/api/proxy?url=' + encodeURIComponent(purl), 8000);
+    if(r.ok){
+      const html = await r.text();
+      if(html.length > 300) return parseHtml(html, url);
+    }
+  }catch(_){}
+
+  // 2순위: 공개 CORS 프록시 동시 레이스
+  const html = await raceProxies(purl);
   if(!html || html.length < 300){
     throw new Error(
-      `페이지를 불러올 수 없습니다(${lastErr})\n` +
-      '로그인 필요 또는 차단된 사이트일 수 있습니다.'
+      '페이지를 불러올 수 없습니다.\n' +
+      '① 로그인이 필요한 사이트이거나\n' +
+      '② 봇 차단 사이트일 수 있습니다.\n' +
+      'Vercel에 배포하면 성공률이 크게 올라갑니다.'
     );
   }
   return parseHtml(html, url);
@@ -1092,7 +1127,7 @@ async function doShare(type){
 /* ══════════════════════════════════════
    UI HELPERS
 ══════════════════════════════════════ */
-function showPlayerBar(){ $('playerBar').classList.add('show'); }
+function showPlayerBar(){ /* player bar is always visible */ }
 function setProg(v){ $('progFill').style.width = v + '%'; }
 function updPlayBtn(){ $('playBtn').textContent = (isOn && !isPaused) ? '⏸' : '▶'; }
 
