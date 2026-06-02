@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#4f46e5"/>
+    </linearGradient>
+    <linearGradient id="wave" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#c4b5fd"/>
+      <stop offset="100%" stop-color="#38bdf8"/>
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="512" height="512" rx="96" fill="url(#bg)"/>
+  <!-- Mic body -->
+  <rect x="196" y="100" width="120" height="200" rx="60" fill="white" opacity="0.95"/>
+  <!-- Mic stand -->
+  <path d="M 160 280 Q 160 380 256 380 Q 352 380 352 280" stroke="white" stroke-width="22" fill="none" stroke-linecap="round" opacity="0.9"/>
+  <line x1="256" y1="380" x2="256" y2="420" stroke="white" stroke-width="22" stroke-linecap="round" opacity="0.9"/>
+  <line x1="200" y1="420" x2="312" y2="420" stroke="white" stroke-width="22" stroke-linecap="round" opacity="0.9"/>
+  <!-- Sound waves -->
+  <path d="M 120 200 Q 80 256 120 312" stroke="url(#wave)" stroke-width="16" fill="none" stroke-linecap="round" opacity="0.8"/>
+  <path d="M 80 170 Q 20 256 80 342" stroke="url(#wave)" stroke-width="12" fill="none" stroke-linecap="round" opacity="0.5"/>
+  <path d="M 392 200 Q 432 256 392 312" stroke="url(#wave)" stroke-width="16" fill="none" stroke-linecap="round" opacity="0.8"/>
+  <path d="M 432 170 Q 492 256 432 342" stroke="url(#wave)" stroke-width="12" fill="none" stroke-linecap="round" opacity="0.5"/>
+</svg>
