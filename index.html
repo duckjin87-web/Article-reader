@@ -12,7 +12,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
-/* ── RESET ── */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
 :root{
@@ -24,12 +23,11 @@
   --hi:#c4b5fd; --hi2:#818cf8; --sky:#38bdf8;
   --tx:#f0eefc; --mu:#94a3b8; --mu2:#64748b;
   --red:rgba(239,68,68,.13); --rbrd:rgba(239,68,68,.38); --rtx:#fca5a5;
-  --grn:rgba(34,197,94,.12);  --gbrd:rgba(34,197,94,.32);  --gtx:#86efac;
+  --grn:rgba(34,197,94,.12); --gbrd:rgba(34,197,94,.32); --gtx:#86efac;
   --ylw:rgba(251,191,36,.10); --ybrd:rgba(251,191,36,.32); --ytx:#fde68a;
   --gold:#fbbf24;
-  --player-h:204px;
+  --player-h:230px;
 }
-
 html,body{
   height:100%;
   background:linear-gradient(160deg,#0d0b1e 0%,#12103a 100%);
@@ -45,7 +43,7 @@ body{
 /* ── HEADER ── */
 .hd{
   text-align:center;
-  padding:20px 16px 6px;
+  padding:18px 16px 5px;
   background:radial-gradient(ellipse at 50% 0%, rgba(124,58,237,.32) 0%, transparent 60%);
   flex-shrink:0;
 }
@@ -60,24 +58,23 @@ body{
 /* ── TABS ── */
 .tabs{
   display:flex; flex-shrink:0;
-  margin:10px 16px 0;
+  margin:8px 16px 0;
   background:var(--card); border:1px solid var(--brd);
   border-radius:13px; overflow:hidden;
-  max-width:560px; align-self:center;
-  width:calc(100% - 32px);
+  max-width:560px; align-self:center; width:calc(100% - 32px);
 }
 .tab{
-  flex:1; padding:12px 0;
+  flex:1; padding:11px 0;
   background:transparent; border:none;
   color:var(--mu); font-size:13px; font-weight:600;
   cursor:pointer; transition:all .2s; font-family:inherit;
 }
 .tab.on{background:rgba(124,58,237,.25); color:var(--hi)}
 
-/* ── SCROLL AREA ── */
+/* ── SCROLL CONTENT ── */
 .content{
   flex:1; overflow-y:auto; overflow-x:hidden;
-  padding:10px 16px 4px;
+  padding:8px 16px 4px;
   display:flex; flex-direction:column; align-items:center;
 }
 .content::-webkit-scrollbar{width:3px}
@@ -89,8 +86,7 @@ body{
   display:flex; gap:8px; align-items:stretch;
   background:var(--card); border:1px solid var(--brd);
   border-radius:14px; padding:8px 8px 8px 14px;
-  margin-bottom:10px;
-  transition:border-color .2s, box-shadow .2s;
+  margin-bottom:10px; transition:border-color .2s, box-shadow .2s;
 }
 .url-row:focus-within{border-color:var(--brd2); box-shadow:0 0 0 3px rgba(124,58,237,.15)}
 #urlInput{
@@ -109,7 +105,7 @@ body{
 }
 .add-btn:active{transform:scale(.9)}
 
-/* ── BUTTONS ── */
+/* ── ACTION BUTTONS ── */
 .btn{
   border:none; border-radius:14px; padding:15px;
   width:100%; max-width:560px;
@@ -121,22 +117,23 @@ body{
 .btn:disabled{opacity:.4; cursor:not-allowed}
 .btn:not(:disabled):active{transform:scale(.98)}
 
-/* ── QUEUE LIST ── */
+/* ── QUEUE ── */
 .q-empty{
   width:100%; max-width:560px;
   border:1px dashed rgba(167,139,250,.2); border-radius:16px;
-  padding:36px; text-align:center; color:var(--mu2); font-size:13px; margin-bottom:10px;
+  padding:32px; text-align:center; color:var(--mu2); font-size:13px; margin-bottom:10px;
 }
 .q-list{width:100%; max-width:560px; display:flex; flex-direction:column; gap:8px; margin-bottom:10px}
 .q-item{
   background:var(--card); border:1px solid var(--brd);
-  border-radius:14px; padding:13px 13px;
-  display:flex; align-items:center; gap:10px;
+  border-radius:14px; padding:12px 12px;
+  display:flex; flex-direction:column; gap:8px;
   transition:all .3s; animation:fadeUp .22s ease-out;
 }
 .q-item.active{background:rgba(124,58,237,.18); border-color:rgba(124,58,237,.5); box-shadow:0 0 14px rgba(124,58,237,.2)}
-.q-item.done{opacity:.4}
+.q-item.done{opacity:.45}
 .q-item.err{background:var(--red); border-color:var(--rbrd)}
+.q-main{display:flex; align-items:center; gap:10px}
 .q-badge{
   width:28px; height:28px; border-radius:50%; flex-shrink:0;
   background:rgba(167,139,250,.15); color:var(--hi);
@@ -150,15 +147,23 @@ body{
 .q-item.done  .q-title{color:var(--mu)}
 .q-url{font-size:10px; color:var(--mu2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
 .q-sub{font-size:10px; margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
-.q-sub.info{color:var(--hi)}
-.q-sub.err{color:var(--rtx)}
+.q-sub.info{color:var(--hi)} .q-sub.err-t{color:var(--rtx)}
 .q-st{font-size:14px; flex-shrink:0}
-.q-del{
-  background:rgba(239,68,68,.12); border:none; border-radius:7px;
-  color:var(--rtx); font-size:12px; padding:6px 10px;
-  cursor:pointer; flex-shrink:0; font-family:inherit; transition:background .2s;
+/* 인라인 액션 버튼 행 */
+.q-actions{
+  display:flex; gap:5px; align-items:center;
 }
-.q-del:hover{background:rgba(239,68,68,.28)}
+.q-act{
+  padding:6px 10px; border-radius:8px; border:none;
+  font-size:11px; font-weight:600; font-family:inherit;
+  cursor:pointer; transition:all .2s; flex-shrink:0;
+}
+.q-act-view{background:rgba(124,58,237,.15); color:var(--hi)}
+.q-act-save{background:rgba(251,191,36,.1); color:var(--gold)}
+.q-act-save.saved{background:rgba(251,191,36,.2); color:var(--gold)}
+.q-act-share{background:rgba(56,189,248,.1); color:var(--sky)}
+.q-act-del{background:rgba(239,68,68,.1); color:var(--rtx); margin-left:auto}
+.q-act:active{transform:scale(.93)}
 
 /* ── VOICE TOGGLE ── */
 .voice-row{
@@ -166,19 +171,16 @@ body{
   display:flex; align-items:center; gap:8px;
   background:transparent; border:1px solid var(--brd);
   border-radius:10px; padding:10px 14px;
-  cursor:pointer; margin-bottom:8px;
-  transition:border-color .2s;
+  cursor:pointer; margin-bottom:8px; transition:border-color .2s;
 }
 .voice-row:hover{border-color:var(--brd2)}
 .voice-row-lbl{flex:1; font-size:12px; color:var(--mu)}
-.voice-sel{font-size:11px; color:var(--hi); max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.voice-sel{font-size:11px; color:var(--hi); max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
 .v-panel{
   width:100%; max-width:560px;
   background:var(--card); border:1px solid var(--brd);
-  border-radius:14px; padding:12px;
-  margin-bottom:10px;
-  max-height:200px; overflow-y:auto;
-  animation:fadeUp .2s;
+  border-radius:14px; padding:12px; margin-bottom:10px;
+  max-height:200px; overflow-y:auto; animation:fadeUp .2s;
 }
 .v-panel::-webkit-scrollbar{width:3px}
 .v-panel::-webkit-scrollbar-thumb{background:rgba(167,139,250,.3); border-radius:3px}
@@ -191,6 +193,7 @@ body{
 }
 .vb.on{background:rgba(124,58,237,.22); color:var(--hi)}
 .vbadge{font-size:9px; padding:1px 6px; border-radius:8px; flex-shrink:0}
+.vbadge.g{background:rgba(34,197,94,.15); color:#86efac}
 .vbadge.f{background:rgba(236,72,153,.2); color:#f9a8d4}
 .vbadge.k{background:rgba(59,130,246,.15); color:#93c5fd}
 
@@ -198,13 +201,12 @@ body{
 .sv-empty{
   width:100%; max-width:560px;
   border:1px dashed rgba(167,139,250,.2); border-radius:16px;
-  padding:40px; text-align:center; color:var(--mu2); font-size:13px;
+  padding:36px; text-align:center; color:var(--mu2); font-size:13px;
 }
 .sv-list{width:100%; max-width:560px; display:flex; flex-direction:column; gap:8px; margin-top:2px}
 .sv-item{
   background:var(--card); border:1px solid var(--brd);
-  border-radius:14px; padding:14px;
-  animation:fadeUp .22s ease-out;
+  border-radius:14px; padding:13px; animation:fadeUp .22s ease-out;
 }
 .sv-hd{display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:4px}
 .sv-title{font-size:14px; font-weight:700; color:var(--tx); flex:1}
@@ -213,8 +215,7 @@ body{
 .sv-btns{display:flex; gap:6px}
 .sv-btn{
   flex:1; padding:10px 0; border-radius:10px; border:none;
-  font-size:12px; font-weight:600; font-family:inherit;
-  cursor:pointer; transition:all .2s;
+  font-size:12px; font-weight:600; font-family:inherit; cursor:pointer; transition:all .2s;
 }
 .sv-btn-add{background:rgba(124,58,237,.2); color:var(--hi)}
 .sv-btn-share{background:rgba(56,189,248,.1); color:var(--sky)}
@@ -235,10 +236,10 @@ body{
 /* ── TOAST ── */
 .toast{
   position:fixed; top:16px; left:50%; transform:translateX(-50%);
-  background:rgba(34,197,94,.15); border:1px solid var(--gbrd);
+  background:rgba(13,11,30,.95); border:1px solid var(--gbrd);
   border-radius:20px; padding:9px 20px;
   color:var(--gtx); font-size:13px; font-weight:700;
-  z-index:400; white-space:nowrap; pointer-events:none;
+  z-index:500; white-space:nowrap; pointer-events:none;
   animation:fadeUp .25s ease-out;
 }
 
@@ -249,7 +250,7 @@ body{
   animation:spin .8s linear infinite; vertical-align:middle;
 }
 
-/* ── STICKY PLAYER BAR ── */
+/* ── PLAYER BAR (항상 표시) ── */
 .player-bar{
   position:fixed; bottom:0; left:0; right:0;
   background:rgba(13,11,30,.97);
@@ -258,26 +259,27 @@ body{
   backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px);
   z-index:200;
 }
-
-.pl-top{display:flex; align-items:center; gap:8px; margin-bottom:7px}
+.pl-top{display:flex; align-items:center; gap:6px; margin-bottom:7px}
 .pl-title{
-  flex:1; font-size:13px; font-weight:700;
+  flex:1; font-size:12px; font-weight:700;
   overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   color:var(--hi);
 }
 .pl-icon-btn{
   background:none; border:none; cursor:pointer; padding:0 2px;
-  font-size:22px; line-height:1; transition:transform .15s; flex-shrink:0;
+  font-size:20px; line-height:1; transition:transform .15s; flex-shrink:0;
 }
 .pl-icon-btn:active{transform:scale(.82)}
-
-.prog-wrap{width:100%; height:4px; background:rgba(255,255,255,.1); border-radius:10px; margin-bottom:9px; overflow:hidden; cursor:pointer}
+.prog-wrap{
+  width:100%; height:5px; background:rgba(255,255,255,.1);
+  border-radius:10px; margin-bottom:8px; overflow:hidden;
+}
 .prog-fill{height:100%; width:0%; background:linear-gradient(90deg,var(--ac),var(--sky)); border-radius:10px; transition:width .3s}
 
-/* ── PLAYER CONTROLS ── */
+/* ── 컨트롤 버튼 (2배 크게) ── */
 .ctrls{
   display:flex; justify-content:center; align-items:center;
-  gap:10px; margin-bottom:9px;
+  gap:12px; margin-bottom:8px;
 }
 .cb{
   border-radius:50%; border:1px solid var(--brd);
@@ -286,27 +288,78 @@ body{
   transition:all .2s; flex-shrink:0;
 }
 .cb:active{transform:scale(.87)}
-.cb.xs{width:42px; height:42px; font-size:16px}
-.cb.sm{width:52px; height:52px; font-size:20px}
+.cb.xs{width:52px; height:52px; font-size:20px}
+.cb.sm{width:62px; height:62px; font-size:24px}
 .cb.lg{
-  width:68px; height:68px; font-size:30px;
+  width:86px; height:86px; font-size:38px;
   background:linear-gradient(135deg,var(--ac),var(--ac2));
   color:#fff; border:none;
-  box-shadow:0 0 24px rgba(124,58,237,.55);
+  box-shadow:0 0 28px rgba(124,58,237,.6);
 }
 
-/* ── SPEED ROW ── */
+/* ── 속도 버튼 (2배 크게) ── */
 .spd-row{display:flex; gap:5px; justify-content:center}
 .sb{
-  flex:1; padding:7px 0; border-radius:9px; border:none;
+  flex:1; padding:10px 0; border-radius:10px; border:none;
   background:rgba(255,255,255,.07); color:var(--mu);
-  font-size:11px; font-weight:600; font-family:inherit;
+  font-size:13px; font-weight:700; font-family:inherit;
   cursor:pointer; transition:all .2s;
 }
 .sb.on{background:linear-gradient(135deg,var(--ac),var(--ac2)); color:#fff}
 .sb:active{transform:scale(.93)}
 
-/* ── SHARE SHEET ── */
+/* ── 기사 내용 드로어 ── */
+.art-overlay{
+  position:fixed; inset:0; background:rgba(0,0,0,.65);
+  z-index:250; display:flex; align-items:flex-end; justify-content:center;
+  animation:fadeIn .18s;
+}
+.art-panel{
+  width:100%; max-width:560px;
+  background:#1a1730; border:1px solid var(--brd);
+  border-radius:20px 20px 0 0;
+  max-height:68vh;
+  display:flex; flex-direction:column;
+  animation:slideUp .28s ease-out;
+  padding-bottom:calc(var(--player-h) + env(safe-area-inset-bottom,0px));
+}
+.art-hd{
+  padding:14px 16px 12px; border-bottom:1px solid var(--brd);
+  display:flex; align-items:center; gap:10px; flex-shrink:0;
+}
+.art-hd-drag{
+  width:36px; height:4px; background:rgba(255,255,255,.2);
+  border-radius:2px; margin:0 auto 10px; display:block;
+}
+.art-hd-inner{display:flex; align-items:center; gap:10px; flex-shrink:0; width:100%}
+.art-hd-title{
+  flex:1; font-size:13px; font-weight:700; color:var(--hi);
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.art-close-btn{
+  background:var(--card); border:1px solid var(--brd);
+  border-radius:8px; padding:6px 12px;
+  color:var(--mu); font-size:12px; font-weight:600;
+  cursor:pointer; flex-shrink:0; font-family:inherit;
+}
+.art-body{
+  flex:1; overflow-y:auto; padding:16px;
+  font-size:14px; line-height:1.9; color:rgba(240,238,252,.85);
+}
+.art-body::-webkit-scrollbar{width:3px}
+.art-body::-webkit-scrollbar-thumb{background:rgba(167,139,250,.3); border-radius:3px}
+/* 현재 읽는 문장 강조 */
+.art-sent{
+  display:inline; border-radius:4px;
+  transition:background .15s, color .15s;
+}
+.art-sent.active{
+  background:rgba(124,58,237,.35);
+  color:#fff;
+  box-shadow:0 0 0 2px rgba(124,58,237,.4);
+}
+
+/* ── 공유 시트 ── */
 .overlay{
   position:fixed; inset:0; background:rgba(0,0,0,.65);
   z-index:300; display:flex; align-items:flex-end; justify-content:center;
@@ -315,8 +368,7 @@ body{
 .sheet{
   background:#1a1730; border:1px solid var(--brd);
   border-radius:20px 20px 0 0; padding:18px 18px calc(18px + env(safe-area-inset-bottom,0px));
-  width:100%; max-width:560px;
-  animation:slideUp .25s ease-out;
+  width:100%; max-width:560px; animation:slideUp .25s ease-out;
 }
 .sheet-ttl{font-size:13px; font-weight:700; color:var(--hi); text-align:center; margin-bottom:14px}
 .share-opts{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:14px}
@@ -345,109 +397,79 @@ body{
 </head>
 <body>
 
-<!-- HEADER -->
 <div class="hd">
   <div class="hd-ti">기사 읽어주기 🎙</div>
   <div class="hd-su">여러 기사를 모아 운전 중 연속으로 들으세요</div>
 </div>
 
-<!-- TABS -->
 <div class="tabs">
   <button class="tab on" id="tabBtnQ" onclick="switchTab('queue')">📋 재생목록</button>
   <button class="tab" id="tabBtnS" onclick="switchTab('saved')">⭐ 저장됨</button>
 </div>
 
-<!-- SCROLL CONTENT -->
-<div class="content" id="mainContent">
+<div class="content">
 
-  <!-- TTS 미지원 경고 -->
   <div class="msg msg-w dn" id="ttsWarn" style="margin-top:8px">
-    <span>⚠️ 음성 미지원 브라우저입니다. Android Chrome 또는 Safari를 이용해주세요.</span>
+    <span>⚠️ 음성 미지원. Android Chrome 또는 Safari를 이용해주세요.</span>
   </div>
 
-  <!-- ════ 재생목록 탭 ════ -->
+  <!-- ═══ 재생목록 탭 ═══ -->
   <div id="tabQueue">
-
-    <!-- URL 입력 -->
     <div class="url-row" style="margin-top:8px">
       <input id="urlInput" type="url"
         placeholder="기사 URL 붙여넣기 후 + 추가"
         autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
-      <button class="add-btn" onclick="addUrl()" aria-label="추가">＋</button>
+      <button class="add-btn" onclick="addUrl()">＋</button>
     </div>
-
-    <!-- 에러 메시지 -->
     <div class="msg msg-e dn" id="errMsg">
       <span id="errTxt"></span>
-      <button onclick="hideErr()" style="color:var(--rtx)" aria-label="닫기">✕</button>
+      <button onclick="hideErr()" style="color:var(--rtx)">✕</button>
     </div>
-
-    <!-- 큐 비어있음 -->
     <div class="q-empty" id="qEmpty">
-      <div style="font-size:40px;margin-bottom:12px">📋</div>
+      <div style="font-size:38px;margin-bottom:10px">📋</div>
       URL을 추가하면 여기에 목록이 표시됩니다<br>
-      <span style="font-size:11px;opacity:.6;margin-top:6px;display:block">스티비 · 네이버 블로그 · YOZM · 뉴스 등</span>
+      <span style="font-size:11px;opacity:.55;margin-top:6px;display:block">스티비 · 네이버 블로그 · YOZM · 뉴스 등</span>
     </div>
-
-    <!-- 큐 목록 -->
     <div class="q-list" id="qList"></div>
-
-    <!-- 전체 실행/삭제 -->
     <div id="qActions" class="dn" style="width:100%;max-width:560px">
-      <button class="btn btn-pri" id="playAllBtn" onclick="loadAndPlay(0)">
-        ▶ &nbsp;전체 불러오기 &amp; 재생
-      </button>
+      <button class="btn btn-pri" id="playAllBtn" onclick="loadAndPlay(0)">▶ &nbsp;전체 불러오기 &amp; 재생</button>
       <button class="btn btn-sec" onclick="clearAll()">🗑 &nbsp;전체 삭제</button>
     </div>
-
-    <!-- 목소리 선택 (접기/펼치기) -->
     <div class="voice-row dn" id="voiceRow" onclick="toggleVoice()" role="button" tabindex="0">
       <span class="voice-row-lbl">🎙 목소리 선택</span>
       <span class="voice-sel" id="curVoiceName"></span>
       <span id="voiceArrow" style="color:var(--mu);font-size:11px">▼</span>
     </div>
-    <div class="v-panel dn" id="vPanel">
-      <div id="vList"></div>
-    </div>
+    <div class="v-panel dn" id="vPanel"><div id="vList"></div></div>
+  </div>
 
-  </div><!-- /tabQueue -->
-
-  <!-- ════ 저장됨 탭 ════ -->
+  <!-- ═══ 저장됨 탭 ═══ -->
   <div id="tabSaved" class="dn" style="width:100%">
     <div class="sv-empty dn" id="svEmpty" style="margin-top:8px">
-      <div style="font-size:40px;margin-bottom:12px">⭐</div>
-      재생 중 하단의 ☆ 버튼을 눌러<br>좋은 기사를 저장하세요
+      <div style="font-size:38px;margin-bottom:10px">⭐</div>
+      재생 중 기사 옆 ☆ 버튼으로 저장하세요
     </div>
     <div class="sv-list" id="svList"></div>
-  </div><!-- /tabSaved -->
+  </div>
 
 </div><!-- /content -->
 
-<!-- ════ 하단 플레이어 바 (sticky) ════ -->
+<!-- ═══ 하단 플레이어 (항상 표시) ═══ -->
 <div class="player-bar" id="playerBar">
-
-  <!-- 기사 제목 + 저장/공유 버튼 -->
   <div class="pl-top">
     <div class="pl-title" id="plTitle">기사를 추가하고 재생을 눌러주세요</div>
-    <button class="pl-icon-btn" id="saveBtn"
-      onclick="saveCurrentArticle()" title="저장" style="color:var(--mu)">☆</button>
-    <button class="pl-icon-btn" id="shareNowBtn"
-      onclick="shareCurrentArticle()" title="공유" style="color:var(--mu);font-size:18px">📤</button>
+    <button class="pl-icon-btn" id="plSaveBtn" onclick="saveCurrentArticle()" title="저장" style="color:var(--mu)">☆</button>
+    <button class="pl-icon-btn" onclick="shareCurrentArticle()" title="공유" style="color:var(--mu);font-size:18px">📤</button>
+    <button class="pl-icon-btn" onclick="openArticleDrawer()" title="기사보기" style="color:var(--mu);font-size:17px">📄</button>
   </div>
-
-  <!-- 진행 바 -->
   <div class="prog-wrap"><div class="prog-fill" id="progFill"></div></div>
-
-  <!-- 재생 컨트롤 -->
   <div class="ctrls">
-    <button class="cb xs" onclick="prevArt()" title="이전 기사">⏮</button>
-    <button class="cb sm" onclick="stopAll()" title="정지">⏹</button>
+    <button class="cb xs" onclick="prevArt()">⏮</button>
+    <button class="cb sm" onclick="stopAll()">⏹</button>
     <button class="cb lg" id="playBtn" onclick="togglePlay()">▶</button>
-    <button class="cb sm" onclick="nextArt()" title="다음 기사">⏭</button>
-    <button class="cb xs" onclick="restartCur()" title="다시 듣기">🔄</button>
+    <button class="cb sm" onclick="nextArt()">⏭</button>
+    <button class="cb xs" onclick="restartCur()">🔄</button>
   </div>
-
-  <!-- 속도 선택 -->
   <div class="spd-row">
     <button class="sb" onclick="setSpd(.8)">0.8x</button>
     <button class="sb on" onclick="setSpd(1)">1.0x</button>
@@ -455,25 +477,35 @@ body{
     <button class="sb" onclick="setSpd(1.5)">1.5x</button>
     <button class="sb" onclick="setSpd(2)">2.0x</button>
   </div>
+</div>
 
-</div><!-- /player-bar -->
+<!-- ═══ 기사 내용 드로어 ═══ -->
+<div class="art-overlay dn" id="artOverlay" onclick="onArtOverlayClick(event)">
+  <div class="art-panel">
+    <div class="art-hd">
+      <span class="art-hd-drag"></span>
+      <div class="art-hd-inner">
+        <div class="art-hd-title" id="artDrawerTitle">—</div>
+        <button class="art-close-btn" onclick="closeArticleDrawer()">닫기</button>
+      </div>
+    </div>
+    <div class="art-body" id="artBody"></div>
+  </div>
+</div>
 
-<!-- ════ 공유 시트 ════ -->
-<div class="overlay dn" id="shareOverlay" onclick="onOverlayClick(event)">
+<!-- ═══ 공유 시트 ═══ -->
+<div class="overlay dn" id="shareOverlay" onclick="onShareOverlayClick(event)">
   <div class="sheet">
     <div class="sheet-ttl" id="sheetTitle">기사 공유</div>
     <div class="share-opts">
       <button class="sh-opt" onclick="doShare('copy')">
-        <span class="sh-opt-ico">🔗</span>
-        <span class="sh-opt-lbl">URL 복사</span>
+        <span class="sh-opt-ico">🔗</span><span class="sh-opt-lbl">URL 복사</span>
       </button>
       <button class="sh-opt" id="nativeShareOpt" onclick="doShare('native')">
-        <span class="sh-opt-ico">📱</span>
-        <span class="sh-opt-lbl">공유하기</span>
+        <span class="sh-opt-ico">📱</span><span class="sh-opt-lbl">공유하기</span>
       </button>
       <button class="sh-opt" onclick="doShare('email')">
-        <span class="sh-opt-ico">📧</span>
-        <span class="sh-opt-lbl">이메일</span>
+        <span class="sh-opt-ico">📧</span><span class="sh-opt-lbl">이메일</span>
       </button>
     </div>
     <button class="sheet-cancel" onclick="closeShare()">취소</button>
@@ -481,679 +513,622 @@ body{
 </div>
 
 <script>
-/* ══════════════════════════════════════
+/* ══════════════════════
    STATE
-══════════════════════════════════════ */
-let Q      = [];   // 재생 큐 배열
-let SAVED  = [];   // 저장된 기사 배열
-let curIdx = -1;
-let isOn   = false;
-let isPaused = false;
-let spd    = 1.0;
-let selVoice  = null;
-let allVoices = [];
-let utter  = null;
-let progTmr = null;
-let uid    = 0;
-let activeTab  = 'queue';
-let voiceOpen  = false;
-let shareTarget = null;  // {url, title}
+══════════════════════ */
+let Q = [], SAVED = [];
+let curIdx = -1, isOn = false, isPaused = false;
+let spd = 1.0, selVoice = null, allVoices = [];
+let chunks = [], chunkIdx = 0, chunkOffset = 0;
+let progTmr = null, uid = 0;
+let activeTab = 'queue', voiceOpen = false;
+let shareTarget = null;
+let artSentences = [];   // [{text, start, el}] for highlighting
+let wakeLock = null;
+let artDrawerOpen = false;
 
-const LS_Q     = 'arq_v3';
-const LS_SAVED = 'arq_saved_v1';
-const LS_SPD   = 'arq_spd';
+const LS_Q = 'arq_v3', LS_SAVED = 'arq_saved_v1', LS_SPD = 'arq_spd';
 
-const FEMALE_KW = [
-  'yuna','유나','heami','혜미','sunhi','선희','sora','소라',
-  'female','여성','google 한국의','nari','나리'
-];
+// Google 한국어 목소리 키워드 (최우선)
+const GOOGLE_KW = ['google 한국', 'google korean'];
+const FEMALE_KW = ['yuna','유나','heami','혜미','sunhi','선희','sora','소라','female','여성','nari','나리'];
 const SI = {pending:'⬜', loading:'', ready:'✅', done:'🔵', error:'❌'};
 
-/* ══════════════════════════════════════
+/* ══════════════════════
    INIT
-══════════════════════════════════════ */
+══════════════════════ */
 (function init(){
   if(!window.speechSynthesis) show('ttsWarn');
+  if(!navigator.share) hide('nativeShareOpt');
 
   function loadVoices(){
     const all = speechSynthesis.getVoices();
     if(!all.length) return;
     allVoices = all;
-    const ko    = all.filter(v => v.lang?.startsWith('ko'));
-    const femKo = ko.filter(v => FEMALE_KW.some(k => v.name.toLowerCase().includes(k)));
-    if(!selVoice) selVoice = femKo[0] || ko[0] || all[0] || null;
+    if(!selVoice) selVoice = selectBestVoice(all);
     renderVoices();
-    if(allVoices.length > 1){
-      $('curVoiceName').textContent = selVoice?.name || '';
-      show('voiceRow');
-    }
+    if(allVoices.length > 1){ $('curVoiceName').textContent = selVoice?.name||''; show('voiceRow'); }
   }
   loadVoices();
   speechSynthesis.onvoiceschanged = loadVoices;
 
-  // 저장 속도 복원
-  try{
-    const s = parseFloat(localStorage.getItem(LS_SPD));
-    if(!isNaN(s)) spd = s;
-  }catch(_){}
+  try{ const s=parseFloat(localStorage.getItem(LS_SPD)); if(!isNaN(s)) spd=s; }catch(_){}
   highlightSpd();
-
-  // 큐 복원
   try{
-    const raw = localStorage.getItem(LS_Q);
-    if(raw){
-      Q = JSON.parse(raw).map(x => ({
-        ...x,
-        status: x.status === 'loading' ? 'pending' : x.status
-      }));
-      uid = Math.max(0, ...Q.map(q => q.id));
-      renderQ();
-    }
+    const raw=localStorage.getItem(LS_Q);
+    if(raw){ Q=JSON.parse(raw).map(x=>({...x,status:x.status==='loading'?'pending':x.status})); uid=Math.max(0,...Q.map(q=>q.id)); renderQ(); }
   }catch(_){}
-
-  // 저장 목록 복원
-  try{
-    const raw = localStorage.getItem(LS_SAVED);
-    if(raw){ SAVED = JSON.parse(raw); renderSaved(); }
-  }catch(_){}
-
-  // Enter 키 추가
-  $('urlInput').addEventListener('keydown', e => { if(e.key === 'Enter') addUrl(); });
-
-  // 네이티브 공유 미지원 시 버튼 숨김
-  if(!navigator.share) hide('nativeShareOpt');
-
-  // PWA service worker
-  if('serviceWorker' in navigator){
-    navigator.serviceWorker.register('./sw.js').catch(() => {});
-  }
+  try{ const raw=localStorage.getItem(LS_SAVED); if(raw){ SAVED=JSON.parse(raw); renderSaved(); } }catch(_){}
+  $('urlInput').addEventListener('keydown', e=>{ if(e.key==='Enter') addUrl(); });
+  if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
 })();
 
-function saveQ(){
-  try{ localStorage.setItem(LS_Q, JSON.stringify(Q)); }catch(_){}
-}
-function saveSavedList(){
-  try{ localStorage.setItem(LS_SAVED, JSON.stringify(SAVED)); }catch(_){}
+// Google 한국어 → Korean female → Korean → any
+function selectBestVoice(voices){
+  const ko = voices.filter(v=>v.lang?.startsWith('ko'));
+  const gko = ko.filter(v=>GOOGLE_KW.some(k=>v.name.toLowerCase().includes(k)));
+  if(gko.length) return gko[0];
+  const fko = ko.filter(v=>FEMALE_KW.some(k=>v.name.toLowerCase().includes(k)));
+  if(fko.length) return fko[0];
+  return ko[0] || voices[0] || null;
 }
 
-/* ══════════════════════════════════════
+function saveQ(){ try{ localStorage.setItem(LS_Q,JSON.stringify(Q)); }catch(_){} }
+function saveSavedList(){ try{ localStorage.setItem(LS_SAVED,JSON.stringify(SAVED)); }catch(_){} }
+
+/* ══════════════════════
    TABS
-══════════════════════════════════════ */
+══════════════════════ */
 function switchTab(tab){
-  activeTab = tab;
-  $('tabBtnQ').className = 'tab' + (tab === 'queue' ? ' on' : '');
-  $('tabBtnS').className = 'tab' + (tab === 'saved' ? ' on' : '');
-  tab === 'queue' ? show('tabQueue') : hide('tabQueue');
-  tab === 'saved' ? show('tabSaved') : hide('tabSaved');
+  activeTab=tab;
+  $('tabBtnQ').className='tab'+(tab==='queue'?' on':'');
+  $('tabBtnS').className='tab'+(tab==='saved'?' on':'');
+  tab==='queue'?show('tabQueue'):hide('tabQueue');
+  tab==='saved'?show('tabSaved'):hide('tabSaved');
 }
 
-/* ══════════════════════════════════════
+/* ══════════════════════
    VOICES
-══════════════════════════════════════ */
+══════════════════════ */
 function toggleVoice(){
-  voiceOpen = !voiceOpen;
-  $('voiceArrow').textContent = voiceOpen ? '▲' : '▼';
-  voiceOpen ? show('vPanel') : hide('vPanel');
+  voiceOpen=!voiceOpen;
+  $('voiceArrow').textContent=voiceOpen?'▲':'▼';
+  voiceOpen?show('vPanel'):hide('vPanel');
 }
-
 function renderVoices(){
-  const ko   = allVoices.filter(v => v.lang?.startsWith('ko'));
-  const rest = allVoices.filter(v => !v.lang?.startsWith('ko'));
-  const list = [...ko, ...rest].slice(0, 30);
-  if(list.length < 2){ hide('voiceRow'); return; }
-  $('vList').innerHTML = list.map(v => {
-    const isFem = FEMALE_KW.some(k => v.name.toLowerCase().includes(k));
-    const isKo  = v.lang?.startsWith('ko');
-    const badge = isFem
-      ? '<span class="vbadge f">여성</span>'
-      : isKo ? '<span class="vbadge k">한국어</span>' : '';
-    const on = selVoice?.name === v.name;
-    return `<button class="vb${on ? ' on' : ''}" onclick="pickVoice('${v.name.replace(/'/g,"\\'")}')">
-      <span style="flex:1">${on ? '✓ ' : ''}${v.name}
-        <span style="opacity:.3;font-size:9px">${v.lang}</span>
-      </span>${badge}
+  const ko=allVoices.filter(v=>v.lang?.startsWith('ko'));
+  const rest=allVoices.filter(v=>!v.lang?.startsWith('ko'));
+  const list=[...ko,...rest].slice(0,30);
+  if(list.length<2){hide('voiceRow');return;}
+  $('vList').innerHTML=list.map(v=>{
+    const isGoo=GOOGLE_KW.some(k=>v.name.toLowerCase().includes(k));
+    const isFem=FEMALE_KW.some(k=>v.name.toLowerCase().includes(k));
+    const isKo=v.lang?.startsWith('ko');
+    const badge=isGoo?'<span class="vbadge g">Google</span>':isFem?'<span class="vbadge f">여성</span>':isKo?'<span class="vbadge k">한국어</span>':'';
+    const on=selVoice?.name===v.name;
+    return `<button class="vb${on?' on':''}" onclick="pickVoice('${v.name.replace(/'/g,"\\'")}')">
+      <span style="flex:1">${on?'✓ ':''}${v.name}<span style="opacity:.3;font-size:9px;margin-left:4px">${v.lang}</span></span>${badge}
     </button>`;
   }).join('');
 }
-
 function pickVoice(name){
-  selVoice = allVoices.find(v => v.name === name) || selVoice;
-  $('curVoiceName').textContent = selVoice?.name || '';
+  selVoice=allVoices.find(v=>v.name===name)||selVoice;
+  $('curVoiceName').textContent=selVoice?.name||'';
   renderVoices();
   if(isOn) restartCur();
 }
 
-/* ══════════════════════════════════════
-   ARTICLE FETCH & PARSE
-══════════════════════════════════════ */
-
+/* ══════════════════════
+   ARTICLE FETCH
+══════════════════════ */
 function preprocessUrl(url){
-  // 네이버 블로그: 모바일 URL이 프록시 통과율 높음
-  return url.replace(/^https?:\/\/blog\.naver\.com/, 'https://m.blog.naver.com');
+  // 네이버 블로그 → 모바일 URL
+  url=url.replace(/^https?:\/\/blog\.naver\.com/,'https://m.blog.naver.com');
+  return url;
 }
-
-async function fetchWithTimeout(url, ms){
-  const ctrl = new AbortController();
-  const tid  = setTimeout(() => ctrl.abort(), ms);
-  try{
-    const r = await fetch(url, { signal: ctrl.signal });
-    clearTimeout(tid);
-    return r;
-  }catch(e){ clearTimeout(tid); throw e; }
+async function fetchWithTimeout(url,ms){
+  const ctrl=new AbortController();
+  const tid=setTimeout(()=>ctrl.abort(),ms);
+  try{ const r=await fetch(url,{signal:ctrl.signal}); clearTimeout(tid); return r; }
+  catch(e){ clearTimeout(tid); throw e; }
 }
-
-// 여러 프록시를 동시에 시도하고 가장 먼저 성공한 결과 반환
 async function raceProxies(url){
-  const enc = encodeURIComponent(url);
-  async function tryOne(proxyUrl, isJson){
-    const r = await fetchWithTimeout(proxyUrl, 12000);
-    if(!r.ok) throw new Error('HTTP ' + r.status);
-    const html = isJson ? (await r.json()).contents || '' : await r.text();
-    if(!html || html.length < 300) throw new Error('응답이 너무 짧음');
+  const enc=encodeURIComponent(url);
+  async function tryOne(pu,isJson){
+    const r=await fetchWithTimeout(pu,12000);
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const html=isJson?(await r.json()).contents||'':await r.text();
+    if(!html||html.length<300) throw new Error('응답 너무 짧음');
     return html;
   }
-  const attempts = [
-    tryOne(`https://api.allorigins.win/get?url=${enc}`, true),
-    tryOne(`https://corsproxy.io/?${enc}`, false),
-    tryOne(`https://api.codetabs.com/v1/proxy?quest=${enc}`, false),
-    tryOne(`https://api.allorigins.win/raw?url=${enc}`, false),
+  const attempts=[
+    tryOne(`https://api.allorigins.win/get?url=${enc}`,true),
+    tryOne(`https://corsproxy.io/?${enc}`,false),
+    tryOne(`https://api.codetabs.com/v1/proxy?quest=${enc}`,false),
+    tryOne(`https://api.allorigins.win/raw?url=${enc}`,false),
   ];
-  return new Promise(resolve => {
-    let failed = 0;
-    attempts.forEach(p => {
-      p.then(html => resolve(html)).catch(() => {
-        if(++failed === attempts.length) resolve('');
-      });
-    });
+  return new Promise(resolve=>{
+    let failed=0;
+    attempts.forEach(p=>p.then(html=>resolve(html)).catch(()=>{ if(++failed===attempts.length) resolve(''); }));
   });
 }
-
 async function fetchArticle(url){
-  const purl = preprocessUrl(url);
-
-  // 1순위: 자체 Vercel 서버리스 프록시 (배포 시 가장 안정적)
+  const purl=preprocessUrl(url);
+  // 1순위: 자체 Vercel 프록시 (배포 시)
   try{
-    const r = await fetchWithTimeout('/api/proxy?url=' + encodeURIComponent(purl), 8000);
-    if(r.ok){
-      const html = await r.text();
-      if(html.length > 300) return parseHtml(html, url);
-    }
+    const r=await fetchWithTimeout('/api/proxy?url='+encodeURIComponent(purl),8000);
+    if(r.ok){ const html=await r.text(); if(html.length>300) return parseHtml(html,url); }
   }catch(_){}
-
-  // 2순위: 공개 CORS 프록시 동시 레이스
-  const html = await raceProxies(purl);
-  if(!html || html.length < 300){
+  // 2순위: 공개 CORS 프록시 레이스
+  const html=await raceProxies(purl);
+  if(!html||html.length<300){
     throw new Error(
-      '페이지를 불러올 수 없습니다.\n' +
-      '① 로그인이 필요한 사이트이거나\n' +
-      '② 봇 차단 사이트일 수 있습니다.\n' +
-      'Vercel에 배포하면 성공률이 크게 올라갑니다.'
+      '페이지를 불러올 수 없습니다.\n'+
+      '로그인 필요 또는 봇 차단 사이트일 수 있습니다.\n'+
+      'Vercel 배포 후 성공률이 크게 올라갑니다.'
     );
   }
-  return parseHtml(html, url);
+  return parseHtml(html,url);
 }
 
-function parseHtml(html, url){
-  const doc = new DOMParser().parseFromString(html, 'text/html');
+function parseHtml(html,url){
+  const doc=new DOMParser().parseFromString(html,'text/html');
 
   // 노이즈 제거
-  const noise = [
-    'script','style','nav','header','footer','aside','iframe','noscript',
+  [
+    'script','style','nav','footer','aside','iframe','noscript',
     '[class*="banner"]','[class*="sidebar"]','[class*="comment"]','[class*="share"]',
     '[class*="social"]','[class*="related"]','[class*="recommend"]','[class*="popup"]',
-    '[class*="gnb"]','[class*="lnb"]','[id*="comment"]','[class*="ad"]',
+    '[class*="gnb"]','[class*="lnb"]','[id*="comment"]',
+    '[class*="ad-"]','[id*="ad-"]','[class*="advertisement"]',
     '.se-image-container','.se-video-container','.se-module-oglink',
-  ];
-  noise.forEach(sel => {
-    try{ doc.querySelectorAll(sel).forEach(el => el.remove()); }catch(_){}
-  });
+  ].forEach(s=>{ try{ doc.querySelectorAll(s).forEach(e=>e.remove()); }catch(_){} });
 
-  // 제목 추출
-  const title = (
-    doc.querySelector('meta[property="og:title"]')?.getAttribute('content') ||
-    doc.querySelector('meta[name="title"]')?.getAttribute('content') ||
-    doc.querySelector('h1')?.textContent ||
-    doc.querySelector('title')?.textContent || '(제목 없음)'
-  ).replace(/\s+/g, ' ').trim();
+  // 제목
+  const title=(
+    doc.querySelector('meta[property="og:title"]')?.getAttribute('content')||
+    doc.querySelector('meta[name="title"]')?.getAttribute('content')||
+    doc.querySelector('h1')?.textContent||
+    doc.querySelector('title')?.textContent||'(제목 없음)'
+  ).replace(/\s+/g,' ').trim();
 
-  // 본문 셀렉터 (우선순위 순)
-  const sels = [
+  // 사이트별 특화 셀렉터
+  let specific=null;
+  if(url.includes('stibee.com')){
+    specific=doc.querySelector('.stibee-email,.email-body,.body-section,table.body,#content');
+  } else if(url.includes('yozm.wishket.com')){
+    specific=doc.querySelector('.article-body-wrap,.post_content,.post-content,.article_body,[class*="detail__content"]');
+  } else if(url.includes('naver.com')){
+    specific=doc.querySelector('.se-main-container,#postViewArea,.post_content,#articleBodyContents');
+  }
+
+  // 범용 셀렉터
+  const sels=[
     '#articleBodyContents','#articeBody','.article_body','.article-body',
     '.article_content','.article-content','[itemprop="articleBody"]',
     '.news_end_body','.se-main-container','#postViewArea','.post-view',
     '.entry-content','.article-view','[class*="tt_article"]',
     '[class*="content-body"]','[class*="post-content"]','[class*="story-content"]',
+    '[class*="article-detail"]','[class*="detail-content"]',
     'td[class*="content"]','article','main','[role="main"]',
     '#content','.content','.container','body',
   ];
 
-  let best = null, bestLen = 0;
-  for(const sel of sels){
-    try{
-      doc.querySelectorAll(sel).forEach(el => {
-        const len = (el.textContent || '').replace(/\s+/g,' ').trim().length;
-        if(len > bestLen && len > 200){ bestLen = len; best = el; }
-      });
-      if(best && bestLen > 800) break;
-    }catch(_){}
+  let best=specific, bestLen=specific?(specific.textContent||'').length:0;
+  if(!best || bestLen<300){
+    for(const sel of sels){
+      try{
+        doc.querySelectorAll(sel).forEach(el=>{
+          const len=(el.textContent||'').replace(/\s+/g,' ').trim().length;
+          if(len>bestLen&&len>200){ bestLen=len; best=el; }
+        });
+        if(best&&bestLen>800) break;
+      }catch(_){}
+    }
   }
-  if(!best) best = doc.body;
+  if(!best) best=doc.body;
 
-  // 단락 우선 추출
-  let text = '';
-  const paras = best.querySelectorAll('p,h2,h3,h4,li,.se-text-paragraph');
-  if(paras.length >= 3){
-    text = Array.from(paras)
-      .map(p => p.textContent.trim())
-      .filter(t => t.length > 15)
-      .join(' ');
-  }
-  if(text.length < 300) text = best.textContent || '';
+  let text='';
+  const paras=best.querySelectorAll('p,h2,h3,h4,li,.se-text-paragraph,[class*="paragraph"]');
+  if(paras.length>=3) text=Array.from(paras).map(p=>p.textContent.trim()).filter(t=>t.length>15).join('\n');
+  if(text.length<300) text=best.textContent||'';
 
-  text = text.replace(/[​-‍﻿]/g, '').replace(/\s+/g, ' ').trim();
-  if(text.length < 80)
-    throw new Error('본문을 찾을 수 없습니다. 이 사이트는 지원되지 않을 수 있습니다.');
+  text=text.replace(/[​-‍﻿]/g,'').replace(/[ \t]+/g,' ').replace(/\n{3,}/g,'\n\n').trim();
+  if(text.length<80) throw new Error('본문을 찾을 수 없습니다. 이 사이트는 지원되지 않을 수 있습니다.');
 
-  return { title, content: text.slice(0, 8000) };
+  return {title, content:text.slice(0,10000)};
 }
 
-/* ══════════════════════════════════════
-   QUEUE MANAGEMENT
-══════════════════════════════════════ */
+/* ══════════════════════
+   QUEUE
+══════════════════════ */
 function addUrl(){
-  const raw = $('urlInput').value.trim();
+  const raw=$('urlInput').value.trim();
   if(!raw) return;
-  const url = raw.startsWith('http') ? raw : 'https://' + raw;
-  if(Q.find(q => q.url === url)){ showErr('이미 추가된 URL입니다.'); return; }
-  Q.push({ id:++uid, url, title:shortHost(url), content:'', status:'pending', err:'' });
-  $('urlInput').value = '';
-  hideErr();
-  renderQ();
-  saveQ();
+  const url=raw.startsWith('http')?raw:'https://'+raw;
+  if(Q.find(q=>q.url===url)){showErr('이미 추가된 URL입니다.'); return;}
+  Q.push({id:++uid,url,title:shortHost(url),content:'',status:'pending',err:''});
+  $('urlInput').value=''; hideErr(); renderQ(); saveQ();
 }
-
 function removeItem(id){
-  const i = Q.findIndex(q => q.id === id);
-  if(i < 0) return;
-  if(i === curIdx) stopAll();
-  Q.splice(i, 1);
-  if(curIdx > i && curIdx > 0) curIdx--;
-  renderQ();
-  saveQ();
+  const i=Q.findIndex(q=>q.id===id); if(i<0) return;
+  if(i===curIdx) stopAll();
+  Q.splice(i,1);
+  if(curIdx>i&&curIdx>0) curIdx--;
+  renderQ(); saveQ();
 }
-
-function clearAll(){
-  stopAll();
-  Q = []; curIdx = -1;
-  renderQ();
-  saveQ();
-}
+function clearAll(){ stopAll(); Q=[]; curIdx=-1; renderQ(); saveQ(); }
 
 function renderQ(){
-  const empty = Q.length === 0;
-  $('qEmpty').style.display  = empty ? 'block' : 'none';
-  $('qActions').style.display = empty ? 'none'  : 'block';
-
-  $('qList').innerHTML = Q.map((q, i) => {
-    const active = (i === curIdx && isOn);
-    const cls = ['q-item',
-      active       ? 'active' : '',
-      q.status === 'done'  ? 'done'   : '',
-      q.status === 'error' ? 'err'    : '',
-    ].filter(Boolean).join(' ');
-
-    const stHtml = q.status === 'loading'
-      ? '<span class="spin"></span>'
-      : `<span class="q-st">${SI[q.status] || '⬜'}</span>`;
-
-    const subLine = q.status === 'error'
-      ? `<div class="q-sub err">${esc(q.err.slice(0,60))}</div>`
-      : q.status === 'loading'
-        ? '<div class="q-sub info">불러오는 중...</div>'
-        : '';
-
+  const empty=Q.length===0;
+  $('qEmpty').style.display=empty?'block':'none';
+  $('qActions').style.display=empty?'none':'block';
+  $('qList').innerHTML=Q.map((q,i)=>{
+    const active=(i===curIdx&&isOn);
+    const saved=SAVED.some(s=>s.url===q.url);
+    const cls=['q-item',active?'active':'',q.status==='done'?'done':'',q.status==='error'?'err':''].filter(Boolean).join(' ');
+    const stHtml=q.status==='loading'?'<span class="spin"></span>':`<span class="q-st">${SI[q.status]||'⬜'}</span>`;
+    const subLine=q.status==='error'?`<div class="q-sub err-t">${esc(q.err.slice(0,60))}</div>`:
+                  q.status==='loading'?'<div class="q-sub info">불러오는 중...</div>':'';
+    const hasContent=q.content&&q.content.length>0;
     return `<div class="${cls}">
-      <div class="q-badge">${active ? '♪' : (i + 1)}</div>
-      <div class="q-info">
-        <div class="q-title">${esc(q.title.length > 44 ? q.title.slice(0,44)+'…' : q.title)}</div>
-        ${subLine}
-        <div class="q-url">${q.url.slice(0, 52)}</div>
+      <div class="q-main">
+        <div class="q-badge">${active?'♪':(i+1)}</div>
+        <div class="q-info">
+          <div class="q-title">${esc(q.title.length>44?q.title.slice(0,44)+'…':q.title)}</div>
+          ${subLine}
+          <div class="q-url">${q.url.slice(0,50)}</div>
+        </div>
+        ${stHtml}
       </div>
-      ${stHtml}
-      <button class="q-del" onclick="removeItem(${q.id})" aria-label="삭제">✕</button>
+      <div class="q-actions">
+        ${hasContent?`<button class="q-act q-act-view" onclick="openArticleDrawerFor(${i})">📄 본문</button>`:''}
+        <button class="q-act q-act-save${saved?' saved':''}" onclick="toggleSaveItem(${i})">
+          ${saved?'★ 저장됨':'☆ 저장'}
+        </button>
+        <button class="q-act q-act-share" onclick="openShare('${q.url.replace(/'/g,"\\'")}','${esc(q.title).replace(/'/g,"\\'")}')">📤 공유</button>
+        <button class="q-act q-act-del" onclick="removeItem(${q.id})">✕</button>
+      </div>
     </div>`;
   }).join('');
 }
 
-/* ══════════════════════════════════════
+/* ══════════════════════
    LOAD & PLAY
-══════════════════════════════════════ */
+══════════════════════ */
 async function loadAndPlay(startIdx){
-  const btn = $('playAllBtn');
-  btn.disabled = true;
-  btn.textContent = '⏳ 불러오는 중...';
+  const btn=$('playAllBtn');
+  btn.disabled=true; btn.textContent='⏳ 불러오는 중...';
   hideErr();
-
-  for(let i = startIdx; i < Q.length; i++){
-    if(Q[i].status !== 'pending') continue;
-    Q[i].status = 'loading';
-    renderQ();
+  for(let i=startIdx;i<Q.length;i++){
+    if(Q[i].status!=='pending') continue;
+    Q[i].status='loading'; renderQ();
     try{
-      const art     = await fetchArticle(Q[i].url);
-      Q[i].title   = art.title;
-      Q[i].content = art.content;
-      Q[i].status  = 'ready';
-    }catch(e){
-      Q[i].status = 'error';
-      Q[i].err    = e.message;
-    }
-    renderQ();
-    saveQ();
+      const art=await fetchArticle(Q[i].url);
+      Q[i].title=art.title; Q[i].content=art.content; Q[i].status='ready';
+    }catch(e){ Q[i].status='error'; Q[i].err=e.message; }
+    renderQ(); saveQ();
   }
-
-  btn.disabled    = false;
-  btn.textContent = '▶ 전체 불러오기 & 재생';
-
-  const first = Q.findIndex((q, i) => i >= startIdx && q.status === 'ready');
-  if(first !== -1) playAt(first, true);
+  btn.disabled=false; btn.textContent='▶ 전체 불러오기 & 재생';
+  const first=Q.findIndex((q,i)=>i>=startIdx&&q.status==='ready');
+  if(first!==-1) playAt(first,true);
   else showErr('불러올 수 있는 기사가 없습니다.\n차단됐거나 로그인이 필요한 사이트일 수 있습니다.');
 }
 
-/* ══════════════════════════════════════
-   TTS PLAYBACK
-══════════════════════════════════════ */
-function playAt(idx, autoNext){
+/* ══════════════════════
+   TTS — 문장 단위 청크
+══════════════════════ */
+// 텍스트를 문장 단위로 분리, ~600자 청크로 묶기 (TTS 품질 향상)
+function buildChunks(text){
+  const sentences=text.match(/[^\n.!?。]+[\n.!?。]?\s*/g)||[text];
+  const result=[];
+  let cur='';
+  for(const s of sentences){
+    if(cur.length+s.length>600&&cur.length>0){ result.push(cur.trim()); cur=s; }
+    else cur+=s;
+  }
+  if(cur.trim()) result.push(cur.trim());
+  return result;
+}
+
+// 기사 내 문장 인덱싱 (하이라이트용)
+function indexSentences(fullText){
+  const raw=fullText.match(/[^\n.!?。]+[\n.!?。]?\s*/g)||[fullText];
+  let offset=0;
+  return raw.map(s=>{
+    const start=offset;
+    offset+=s.length;
+    return {text:s.trim(),start,end:offset};
+  }).filter(s=>s.text.length>5);
+}
+
+function playAt(idx,autoNext){
   if(!speechSynthesis) return;
-  const q = Q[idx];
+  const q=Q[idx];
   if(!q?.content) return;
 
   speechSynthesis.cancel();
   if(progTmr) clearInterval(progTmr);
 
-  curIdx   = idx;
-  isOn     = true;
-  isPaused = false;
+  curIdx=idx; isOn=true; isPaused=false;
+  const fullText=q.title+'. '+q.content;
 
-  const text  = q.title + '. ' + q.content;
-  const words = text.split(/\s+/);
+  $('plTitle').textContent=q.title;
+  refreshSaveBtnPlayer(q.url);
+  setProg(0); renderQ();
 
-  $('plTitle').textContent = q.title;
-  refreshSaveBtn(q.url);
-  showPlayerBar();
-  setProg(0);
-  renderQ();
+  // 문장 인덱싱
+  artSentences=indexSentences(fullText);
+  // 드로어가 열려있으면 새 기사 내용으로 교체
+  if(artDrawerOpen) renderArtDrawer(idx);
 
-  const u = new SpeechSynthesisUtterance(text);
-  if(selVoice) u.voice = selVoice;
-  u.rate = spd;
-  u.lang = 'ko-KR';
-  utter  = u;
+  // 청크 분할
+  chunks=buildChunks(fullText);
+  chunkIdx=0; chunkOffset=0;
 
-  u.onboundary = e => {
-    if(e.name !== 'word') return;
-    const wc = text.slice(0, e.charIndex + (e.charLength || 1)).split(/\s+/).length;
-    setProg(Math.min(99, wc / words.length * 100));
-  };
+  // Wake lock (화면 꺼짐 방지)
+  requestWakeLock();
 
-  // iOS / 일부 브라우저: onboundary 미발화 보완 타이머
-  let tv = 0;
-  const ms = text.length * 210 / spd;
-  progTmr = setInterval(() => {
-    tv = Math.min(95, tv + 100 / (ms / 500));
-    const cur = parseFloat($('progFill').style.width || '0');
-    if(cur < 2) setProg(tv);
-  }, 500);
-
-  u.onend = () => {
-    clearInterval(progTmr);
-    setProg(100);
-    isOn = false; isPaused = false;
-    updPlayBtn();
-    Q[curIdx].status = 'done';
-    renderQ();
-    saveQ();
-
-    if(!autoNext) return;
-    const ni = Q.findIndex((q, i) => i > idx && q.status === 'ready');
-    if(ni !== -1){
-      const nxt = Q[ni];
-      showToast(`✅ 완료 → 다음: ${nxt.title.slice(0,20)}`);
-      const ann = new SpeechSynthesisUtterance(
-        `기사를 다 읽었습니다. 다음 ${nxt.title} 기사로 넘어갑니다.`
-      );
-      if(selVoice) ann.voice = selVoice;
-      ann.rate = spd; ann.lang = 'ko-KR';
-      ann.onend  = () => playAt(ni, true);
-      ann.onerror = () => playAt(ni, true);
-      speechSynthesis.speak(ann);
-    } else {
-      showToast('🎉 모든 기사 읽기 완료!');
-    }
-  };
-
-  u.onerror = e => {
-    clearInterval(progTmr);
-    if(e.error === 'interrupted' || e.error === 'canceled') return;
-    isOn = false; isPaused = false;
-    updPlayBtn();
-  };
-
-  speechSynthesis.speak(u);
+  playChunk(autoNext);
   updPlayBtn();
+}
+
+function playChunk(autoNext){
+  if(chunkIdx>=chunks.length){
+    onArticleEnd(autoNext);
+    return;
+  }
+  const text=chunks[chunkIdx];
+  const u=new SpeechSynthesisUtterance(text);
+  if(selVoice) u.voice=selVoice;
+  u.rate=spd; u.lang='ko-KR';
+
+  // 전체 텍스트 기준 진행률
+  const totalLen=chunks.reduce((a,c)=>a+c.length,0);
+  u.onboundary=e=>{
+    if(e.name!=='word') return;
+    const absChar=chunkOffset+e.charIndex;
+    const pct=Math.min(99,(absChar/totalLen)*100);
+    setProg(pct);
+    highlightSentence(absChar);
+  };
+  u.onend=()=>{
+    chunkOffset+=text.length+1;
+    chunkIdx++;
+    playChunk(autoNext);
+  };
+  u.onerror=e=>{
+    if(e.error==='interrupted'||e.error==='canceled') return;
+    chunkOffset+=text.length+1;
+    chunkIdx++;
+    playChunk(autoNext);
+  };
+  speechSynthesis.speak(u);
+}
+
+function onArticleEnd(autoNext){
+  if(progTmr) clearInterval(progTmr);
+  setProg(100); isOn=false; isPaused=false; updPlayBtn();
+  if(curIdx>=0){ Q[curIdx].status='done'; renderQ(); saveQ(); }
+  releaseWakeLock();
+
+  if(!autoNext) return;
+  const ni=Q.findIndex((q,i)=>i>curIdx&&q.status==='ready');
+  if(ni!==-1){
+    showToast(`✅ 완료 → 다음: ${Q[ni].title.slice(0,18)}`);
+    const ann=new SpeechSynthesisUtterance(`다음 기사, ${Q[ni].title}`);
+    if(selVoice) ann.voice=selVoice;
+    ann.rate=spd; ann.lang='ko-KR';
+    ann.onend=()=>playAt(ni,true);
+    ann.onerror=()=>playAt(ni,true);
+    speechSynthesis.speak(ann);
+  } else {
+    showToast('🎉 모든 기사 읽기 완료!');
+  }
 }
 
 function togglePlay(){
   if(!speechSynthesis) return;
   if(!isOn){
-    if(curIdx >= 0 && Q[curIdx]?.status === 'ready') playAt(curIdx, true);
+    if(curIdx>=0&&Q[curIdx]?.status==='ready') playAt(curIdx,true);
     else loadAndPlay(0);
   } else if(isPaused){
-    speechSynthesis.resume(); isPaused = false; updPlayBtn();
+    speechSynthesis.resume(); isPaused=false; updPlayBtn();
   } else {
-    speechSynthesis.pause(); isPaused = true; updPlayBtn();
+    speechSynthesis.pause(); isPaused=true; updPlayBtn();
   }
 }
-
 function stopAll(){
   if(speechSynthesis) speechSynthesis.cancel();
   if(progTmr) clearInterval(progTmr);
-  isOn = false; isPaused = false;
-  setProg(0); updPlayBtn();
-  renderQ();
+  isOn=false; isPaused=false; chunks=[]; chunkIdx=0; chunkOffset=0;
+  setProg(0); updPlayBtn(); renderQ();
+  releaseWakeLock();
 }
-
 function nextArt(){
-  const ni = Q.findIndex((q, i) => i > curIdx && (q.status === 'ready' || q.status === 'pending'));
-  if(ni !== -1){ stopAll(); loadAndPlay(ni); }
+  const ni=Q.findIndex((q,i)=>i>curIdx&&(q.status==='ready'||q.status==='pending'));
+  if(ni!==-1){ stopAll(); loadAndPlay(ni); }
 }
-
 function prevArt(){
-  for(let i = curIdx - 1; i >= 0; i--){
-    if(Q[i].status !== 'error'){
-      if(Q[i].status === 'done') Q[i].status = 'ready';
-      stopAll();
-      setTimeout(() => playAt(i, true), 100);
-      return;
+  for(let i=curIdx-1;i>=0;i--){
+    if(Q[i].status!=='error'){
+      if(Q[i].status==='done') Q[i].status='ready';
+      stopAll(); setTimeout(()=>playAt(i,true),100); return;
     }
   }
 }
-
 function restartCur(){
-  if(curIdx >= 0 && Q[curIdx]){
-    if(Q[curIdx].status === 'done') Q[curIdx].status = 'ready';
-    stopAll();
-    setTimeout(() => playAt(curIdx, true), 100);
+  if(curIdx>=0&&Q[curIdx]){
+    if(Q[curIdx].status==='done') Q[curIdx].status='ready';
+    stopAll(); setTimeout(()=>playAt(curIdx,true),100);
   }
 }
-
 function setSpd(v){
-  spd = v;
-  highlightSpd();
-  try{ localStorage.setItem(LS_SPD, String(v)); }catch(_){}
+  spd=v; highlightSpd();
+  try{ localStorage.setItem(LS_SPD,String(v)); }catch(_){}
   if(isOn) restartCur();
 }
-
 function highlightSpd(){
-  document.querySelectorAll('.sb').forEach(b => {
-    b.classList.toggle('on', Math.abs(parseFloat(b.textContent) - spd) < 0.01);
+  document.querySelectorAll('.sb').forEach(b=>{
+    b.classList.toggle('on',Math.abs(parseFloat(b.textContent)-spd)<0.01);
   });
 }
 
-/* ══════════════════════════════════════
-   SAVE ARTICLE
-══════════════════════════════════════ */
-function saveCurrentArticle(){
-  if(curIdx < 0 || !Q[curIdx]) return;
-  const q = Q[curIdx];
-  const exists = SAVED.find(s => s.url === q.url);
+/* ══════════════════════
+   WAKE LOCK
+══════════════════════ */
+async function requestWakeLock(){
+  try{
+    if('wakeLock' in navigator) wakeLock=await navigator.wakeLock.request('screen');
+  }catch(_){}
+}
+function releaseWakeLock(){
+  try{ if(wakeLock){ wakeLock.release(); wakeLock=null; } }catch(_){}
+}
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible'&&isOn) requestWakeLock();
+});
+
+/* ══════════════════════
+   기사 드로어
+══════════════════════ */
+function openArticleDrawer(){
+  if(curIdx<0||!Q[curIdx]?.content){ showToast('재생 중인 기사가 없습니다'); return; }
+  renderArtDrawer(curIdx);
+  show('artOverlay'); artDrawerOpen=true;
+}
+function openArticleDrawerFor(idx){
+  if(!Q[idx]?.content){ showToast('먼저 기사를 불러오세요'); return; }
+  renderArtDrawer(idx);
+  show('artOverlay'); artDrawerOpen=true;
+}
+function closeArticleDrawer(){ hide('artOverlay'); artDrawerOpen=false; }
+function onArtOverlayClick(e){ if(e.target.id==='artOverlay') closeArticleDrawer(); }
+
+function renderArtDrawer(idx){
+  const q=Q[idx];
+  if(!q) return;
+  $('artDrawerTitle').textContent=q.title;
+  // 문장 단위로 span 렌더링
+  const sentences=indexSentences(q.title+'. '+q.content);
+  $('artBody').innerHTML=sentences.map((s,i)=>
+    `<span class="art-sent" id="sent-${i}" data-start="${s.start}" data-end="${s.end}">${esc(s.text)} </span>`
+  ).join('');
+}
+
+function highlightSentence(absChar){
+  if(!artDrawerOpen) return;
+  const idx=artSentences.findIndex(s=>absChar>=s.start&&absChar<s.end);
+  if(idx<0) return;
+  // 이전 active 제거
+  document.querySelectorAll('.art-sent.active').forEach(el=>el.classList.remove('active'));
+  const el=document.getElementById('sent-'+idx);
+  if(el){
+    el.classList.add('active');
+    el.scrollIntoView({block:'center',behavior:'smooth'});
+  }
+}
+
+/* ══════════════════════
+   SAVE
+══════════════════════ */
+function toggleSaveItem(idx){
+  const q=Q[idx]; if(!q) return;
+  const exists=SAVED.find(s=>s.url===q.url);
   if(exists){
-    // 저장 취소
-    SAVED = SAVED.filter(s => s.url !== q.url);
-    saveSavedList();
-    refreshSaveBtn(q.url);
-    renderSaved();
+    SAVED=SAVED.filter(s=>s.url!==q.url);
     showToast('저장이 취소되었습니다');
   } else {
-    SAVED.unshift({
-      id:      Date.now(),
-      url:     q.url,
-      title:   q.title,
-      savedAt: new Date().toLocaleDateString('ko-KR'),
-    });
-    saveSavedList();
-    refreshSaveBtn(q.url);
-    renderSaved();
+    SAVED.unshift({id:Date.now(),url:q.url,title:q.title,savedAt:new Date().toLocaleDateString('ko-KR')});
     showToast('⭐ 저장되었습니다!');
   }
+  saveSavedList(); renderQ(); renderSaved();
+  refreshSaveBtnPlayer(q.url);
 }
-
-function refreshSaveBtn(url){
-  const isSaved = SAVED.some(s => s.url === url);
-  const btn = $('saveBtn');
-  btn.textContent = isSaved ? '★' : '☆';
-  btn.style.color = isSaved ? 'var(--gold)' : 'var(--mu)';
+function saveCurrentArticle(){
+  if(curIdx>=0&&Q[curIdx]) toggleSaveItem(curIdx);
 }
-
-function removeSaved(url){
-  SAVED = SAVED.filter(s => s.url !== url);
-  saveSavedList();
-  renderSaved();
-  if(curIdx >= 0 && Q[curIdx]?.url === url) refreshSaveBtn(url);
+function refreshSaveBtnPlayer(url){
+  const saved=SAVED.some(s=>s.url===url);
+  const btn=$('plSaveBtn');
+  btn.textContent=saved?'★':'☆';
+  btn.style.color=saved?'var(--gold)':'var(--mu)';
 }
-
-function addSavedToQueue(url, title){
-  if(!Q.find(q => q.url === url)){
-    Q.push({ id:++uid, url, title, content:'', status:'pending', err:'' });
-    saveQ();
-    renderQ();
-  }
-  switchTab('queue');
-  showToast('재생목록에 추가되었습니다!');
-}
-
 function renderSaved(){
-  const empty = SAVED.length === 0;
-  $('svEmpty').style.display = empty ? 'block' : 'none';
-  $('svList').innerHTML = SAVED.map(s => {
-    const safeUrl   = s.url.replace(/'/g,"\\'");
-    const safeTitle = esc(s.title).replace(/'/g,"\\'");
+  const empty=SAVED.length===0;
+  $('svEmpty').style.display=empty?'block':'none';
+  $('svList').innerHTML=SAVED.map(s=>{
+    const su=s.url.replace(/'/g,"\\'"), st=esc(s.title).replace(/'/g,"\\'");
     return `<div class="sv-item">
       <div class="sv-hd">
-        <div class="sv-title">${esc(s.title.length > 50 ? s.title.slice(0,50)+'…' : s.title)}</div>
-        <div class="sv-date">${s.savedAt || ''}</div>
+        <div class="sv-title">${esc(s.title.length>50?s.title.slice(0,50)+'…':s.title)}</div>
+        <div class="sv-date">${s.savedAt||''}</div>
       </div>
       <div class="sv-url">${s.url.slice(0,55)}</div>
       <div class="sv-btns">
-        <button class="sv-btn sv-btn-add"
-          onclick="addSavedToQueue('${safeUrl}','${safeTitle}')">▶ 목록 추가</button>
-        <button class="sv-btn sv-btn-share"
-          onclick="openShare('${safeUrl}','${safeTitle}')">📤 공유</button>
-        <button class="sv-btn sv-btn-del"
-          onclick="removeSaved('${safeUrl}')" aria-label="삭제">✕</button>
+        <button class="sv-btn sv-btn-add" onclick="addSavedToQueue('${su}','${st}')">▶ 목록 추가</button>
+        <button class="sv-btn sv-btn-share" onclick="openShare('${su}','${st}')">📤 공유</button>
+        <button class="sv-btn sv-btn-del" onclick="removeSaved('${su}')">✕</button>
       </div>
     </div>`;
   }).join('');
 }
+function removeSaved(url){
+  SAVED=SAVED.filter(s=>s.url!==url);
+  saveSavedList(); renderSaved();
+  if(curIdx>=0&&Q[curIdx]?.url===url) refreshSaveBtnPlayer(url);
+  renderQ();
+}
+function addSavedToQueue(url,title){
+  if(!Q.find(q=>q.url===url)){
+    Q.push({id:++uid,url,title,content:'',status:'pending',err:''});
+    saveQ(); renderQ();
+  }
+  switchTab('queue'); showToast('재생목록에 추가되었습니다!');
+}
 
-/* ══════════════════════════════════════
+/* ══════════════════════
    SHARE
-══════════════════════════════════════ */
-function openShare(url, title){
-  shareTarget = { url, title };
-  $('sheetTitle').textContent = `"${title.slice(0, 28)}" 공유`;
-  show('shareOverlay');
-}
-
-function shareCurrentArticle(){
-  if(curIdx < 0 || !Q[curIdx]) return;
-  openShare(Q[curIdx].url, Q[curIdx].title);
-}
-
-function closeShare(){
-  hide('shareOverlay');
-}
-
-function onOverlayClick(e){
-  if(e.target.id === 'shareOverlay') closeShare();
-}
-
+══════════════════════ */
+function openShare(url,title){ shareTarget={url,title}; $('sheetTitle').textContent=`"${title.slice(0,28)}" 공유`; show('shareOverlay'); }
+function shareCurrentArticle(){ if(curIdx>=0&&Q[curIdx]) openShare(Q[curIdx].url,Q[curIdx].title); }
+function closeShare(){ hide('shareOverlay'); }
+function onShareOverlayClick(e){ if(e.target.id==='shareOverlay') closeShare(); }
 async function doShare(type){
   if(!shareTarget) return;
-  const { url, title } = shareTarget;
-  if(type === 'copy'){
-    try{
-      await navigator.clipboard.writeText(url);
-    }catch(_){
-      // fallback for older Android
-      const ta = document.createElement('textarea');
-      ta.value = url; ta.style.position = 'fixed'; ta.style.opacity = '0';
-      document.body.appendChild(ta); ta.focus(); ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
-    }
-    closeShare();
-    showToast('🔗 URL이 복사되었습니다!');
-  } else if(type === 'native'){
-    try{
-      await navigator.share({ title, url });
-      closeShare();
-    }catch(_){}
-  } else if(type === 'email'){
-    location.href = `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(url)}`;
-    closeShare();
+  const{url,title}=shareTarget;
+  if(type==='copy'){
+    try{ await navigator.clipboard.writeText(url); }
+    catch(_){ const t=document.createElement('textarea'); t.value=url; t.style.opacity='0'; document.body.appendChild(t); t.select(); document.execCommand('copy'); document.body.removeChild(t); }
+    closeShare(); showToast('🔗 URL이 복사되었습니다!');
+  } else if(type==='native'){
+    try{ await navigator.share({title,url}); closeShare(); }catch(_){}
+  } else if(type==='email'){
+    location.href=`mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(url)}`; closeShare();
   }
 }
 
-/* ══════════════════════════════════════
+/* ══════════════════════
    UI HELPERS
-══════════════════════════════════════ */
-function showPlayerBar(){ /* player bar is always visible */ }
-function setProg(v){ $('progFill').style.width = v + '%'; }
-function updPlayBtn(){ $('playBtn').textContent = (isOn && !isPaused) ? '⏸' : '▶'; }
+══════════════════════ */
+function setProg(v){ $('progFill').style.width=v+'%'; }
+function updPlayBtn(){ $('playBtn').textContent=(isOn&&!isPaused)?'⏸':'▶'; }
 
-let toastTmr = null;
+let toastTmr=null;
 function showToast(msg){
-  let t = document.querySelector('.toast');
-  if(!t){ t = document.createElement('div'); t.className='toast'; document.body.appendChild(t); }
-  t.textContent = msg;
-  t.style.display = 'block';
+  let t=document.querySelector('.toast');
+  if(!t){ t=document.createElement('div'); t.className='toast'; document.body.appendChild(t); }
+  t.textContent=msg; t.style.display='block';
   if(toastTmr) clearTimeout(toastTmr);
-  toastTmr = setTimeout(() => { if(t) t.style.display='none'; }, 2400);
+  toastTmr=setTimeout(()=>{ if(t) t.style.display='none'; },2400);
 }
-
-function showErr(m){ $('errTxt').textContent = m; show('errMsg'); }
-function hideErr(){  hide('errMsg'); }
-function show(id){   document.getElementById(id)?.classList.remove('dn'); }
-function hide(id){   document.getElementById(id)?.classList.add('dn'); }
-function $(id){      return document.getElementById(id); }
-function esc(s){
-  return String(s)
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-function shortHost(url){
-  try{ return new URL(url).hostname.replace('www.',''); }catch{ return url.slice(0,30); }
-}
+function showErr(m){ $('errTxt').textContent=m; show('errMsg'); }
+function hideErr(){ hide('errMsg'); }
+function show(id){ document.getElementById(id)?.classList.remove('dn'); }
+function hide(id){ document.getElementById(id)?.classList.add('dn'); }
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function shortHost(url){ try{ return new URL(url).hostname.replace('www.',''); }catch{ return url.slice(0,30); } }
 </script>
 </body>
 </html>
