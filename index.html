@@ -169,9 +169,22 @@ body{
 .spd-sl{flex:1;-webkit-appearance:none;appearance:none;height:5px;border-radius:5px;outline:none;cursor:pointer;background:rgba(255,255,255,.15)}
 .spd-sl::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--ac),var(--ac2));cursor:pointer;box-shadow:0 0 12px rgba(124,58,237,.6)}
 .spd-sl::-moz-range-thumb{width:28px;height:28px;border:none;border-radius:50%;background:linear-gradient(135deg,var(--ac),var(--ac2));cursor:pointer}
-/* 읽는 부분 표시 (카라오케) */
-.reading-strip{font-size:12.5px;line-height:1.7;color:rgba(240,238,252,.6);background:rgba(255,255,255,.04);border:1px solid rgba(167,139,250,.14);border-radius:10px;padding:8px 13px;margin-bottom:7px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-.rdhlt{background:rgba(251,191,36,.35);color:var(--gold);border-radius:4px;padding:0 3px;font-weight:700;font-size:13px}
+/* 읽는 부분 표시 — 3줄, 현재 문장 가운데 고정 */
+.reading-strip{
+  font-size:13px;line-height:1.65;
+  color:rgba(240,238,252,.65);
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(167,139,250,.14);
+  border-radius:10px;
+  padding:8px 13px;
+  margin-bottom:7px;
+  height:calc(13px * 1.65 * 3 + 16px); /* 정확히 3줄 */
+  overflow:hidden; /* scrollTop으로 제어, 스크롤바 숨김 */
+  word-break:break-word;
+}
+.rdhlt{background:rgba(251,191,36,.38);color:var(--gold);border-radius:4px;padding:1px 3px;font-weight:700}
+/* 예상 읽기 시간 */
+.q-rt{font-size:10px;color:var(--mu2);flex-shrink:0;white-space:nowrap;padding:0 6px;line-height:1.4;text-align:right}
 /* 직접입력 모달 */
 .dinput-modal{position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:400;display:flex;align-items:center;justify-content:center;padding:16px;animation:fadeIn .18s}
 .dinput-inner{background:#1a1730;border:1px solid var(--brd);border-radius:20px;padding:20px;width:100%;max-width:520px;animation:fadeUp .2s}
@@ -279,7 +292,7 @@ body{
   <div class="spd-row">
     <span class="spd-lbl">🐢 배속</span>
     <input type="range" id="spdSlider" class="spd-sl"
-      min="0.5" max="2.0" step="0.1" value="1.0"
+      min="0.8" max="2.0" step="0.1" value="1.0"
       oninput="setSpd(parseFloat(this.value))">
     <span class="spd-val" id="spdVal">1.0x</span>
   </div>
@@ -803,6 +816,7 @@ function renderQ(){
     const stHtml=q.status==='loading'?'<span class="spin"></span>':`<span class="q-st">${SI[q.status]||'⬜'}</span>`;
     const subLine=q.status==='error'?`<div class="q-sub err-t">${esc(q.err.slice(0,60))}</div>`:
                   q.status==='loading'?'<div class="q-sub info">불러오는 중...</div>':'';
+    const rt = q.content ? estimateReadTime(q.content) : '';
     return `<div class="${cls}" id="qitem-${q.id}">
       <div class="q-main" onclick="playOrLoadItem(${i})" title="탭하여 재생">
         <div class="q-badge">${active?'♪':(i+1)}</div>
@@ -811,6 +825,7 @@ function renderQ(){
           ${subLine}
           <div class="q-url">${q.url.slice(0,50)}</div>
         </div>
+        ${rt?`<span class="q-rt">⏱${rt}</span>`:''}
         ${stHtml}
       </div>
       <div class="q-acts">
@@ -1058,26 +1073,31 @@ function updateReadingText(chunk, pos, wordLen){
     if(end <= start) end = Math.min(chunk.length, start + 6);
   }
 
-  // 100자 슬라이딩 윈도우 (현재 단어를 중심으로)
-  const WIN = 100;
-  const mid = (start + end) >> 1;
-  let ws = Math.max(0, mid - Math.floor(WIN / 2));
-  let we = Math.min(chunk.length, ws + WIN);
-  if(we - ws < WIN) ws = Math.max(0, we - WIN);
+  // 청크 전체를 표시 → scrollTop으로 현재 단어를 2번째 줄(가운데)에 고정
+  const b = esc(chunk.slice(0, start));
+  const h = esc(chunk.slice(start, end));
+  const a = esc(chunk.slice(end));
 
-  const rS = Math.max(0, start - ws);
-  const rE = Math.min(we - ws, end - ws);
-  const win = chunk.slice(ws, we);
-
-  const b = esc(win.slice(0, rS));
-  const h = esc(win.slice(rS, rE));
-  const a = esc(win.slice(rE));
-
-  rs.innerHTML =
-    (ws > 0 ? '<span style="opacity:.35">…</span>' : '') +
-    b + (h ? `<span class="rdhlt">${h}</span>` : '') + a +
-    (we < chunk.length ? '<span style="opacity:.35">…</span>' : '');
+  rs.innerHTML = b + (h ? `<span class="rdhlt">${h}</span>` : '') + a;
   rs.classList.remove('dn');
+
+  // 하이라이트 요소를 가운데(2번째) 줄에 오도록 스크롤
+  const hlEl = rs.querySelector('.rdhlt');
+  if(hlEl){
+    const lineH = 13 * 1.65; // 한 줄 높이 ≈21px
+    // offsetTop에서 padding(8px) + 1줄을 빼면 하이라이트가 2번째 줄에 위치
+    rs.scrollTop = Math.max(0, hlEl.offsetTop - 8 - lineH);
+  }
+}
+
+function estimateReadTime(content){
+  if(!content || content.length < 30) return '';
+  const seconds = Math.round(content.length / 200 * 60);
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  if(mins === 0) return `~${secs}초`;
+  if(secs === 0) return `~${mins}분`;
+  return `~${mins}분 ${secs < 10 ? '0'+secs : secs}초`;
 }
 
 function setSpd(v){
@@ -1098,7 +1118,7 @@ function highlightSpd(){
 function updateSliderTrack(){
   const sl = document.getElementById('spdSlider');
   if(!sl) return;
-  const min=0.5, max=2.0;
+  const min=0.8, max=2.0;
   const pct = (spd - min) / (max - min) * 100;
   sl.style.background = `linear-gradient(to right,var(--ac) ${pct}%,rgba(255,255,255,.15) ${pct}%)`;
 }
