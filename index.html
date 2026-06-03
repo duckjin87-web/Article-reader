@@ -82,7 +82,7 @@ body{
 .q-sub.info{color:var(--hi)} .q-sub.err-t{color:var(--rtx)}
 .q-st{font-size:14px;flex-shrink:0}
 /* 인라인 버튼 행 */
-.q-acts{display:flex;gap:5px;align-items:center}
+.q-acts{display:flex;gap:5px;align-items:center;flex-wrap:wrap}
 .qa{padding:7px 10px;border-radius:8px;border:none;font-size:11px;font-weight:600;font-family:inherit;cursor:pointer;transition:all .18s;flex-shrink:0}
 .qa:active{transform:scale(.92)}
 .qa-site{background:rgba(56,189,248,.12);color:var(--sky)}
@@ -164,6 +164,14 @@ body{
 .sb{flex:1;padding:10px 0;border-radius:10px;border:none;background:rgba(255,255,255,.07);color:var(--mu);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s}
 .sb.on{background:linear-gradient(135deg,var(--ac),var(--ac2));color:#fff}
 .sb:active{transform:scale(.93)}
+/* 직접입력 모달 */
+.dinput-modal{position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:400;display:flex;align-items:center;justify-content:center;padding:16px;animation:fadeIn .18s}
+.dinput-inner{background:#1a1730;border:1px solid var(--brd);border-radius:20px;padding:20px;width:100%;max-width:520px;animation:fadeUp .2s}
+.dinput-inner textarea{width:100%;height:210px;background:rgba(255,255,255,.07);border:1px solid var(--brd);border-radius:10px;color:var(--tx);font-family:inherit;font-size:13px;line-height:1.6;padding:12px;resize:none;margin:10px 0;outline:none}
+.dinput-inner textarea:focus{border-color:var(--brd2)}
+.dinput-btns{display:flex;gap:8px}
+.dinput-cancel{flex:1;padding:12px;border-radius:10px;border:1px solid var(--brd);background:transparent;color:var(--mu);font-size:13px;font-weight:600;font-family:inherit;cursor:pointer}
+.dinput-ok{flex:2;padding:12px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--ac),var(--ac2));color:#fff;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer}
 /* 공유 시트 */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:300;display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .18s}
 .sheet{background:#1a1730;border:1px solid var(--brd);border-radius:20px 20px 0 0;padding:18px 18px calc(18px + env(safe-area-inset-bottom,0px));width:100%;max-width:560px;animation:slideUp .25s ease-out}
@@ -264,6 +272,19 @@ body{
   </div>
 </div>
 
+<!-- ═══ 텍스트 직접입력 모달 ═══ -->
+<div class="dinput-modal dn" id="directInputModal" onclick="onDInputClick(event)">
+  <div class="dinput-inner">
+    <div style="font-size:14px;font-weight:700;color:var(--hi);margin-bottom:4px">✏️ 텍스트 직접 입력</div>
+    <div style="font-size:11px;color:var(--mu2)">접속 불가 사이트는 기사 본문을 직접 복사해서 붙여넣기 하세요</div>
+    <textarea id="directInputArea" placeholder="기사 제목과 본문을 여기에 붙여넣기..."></textarea>
+    <div class="dinput-btns">
+      <button class="dinput-cancel" onclick="closeDInput()">취소</button>
+      <button class="dinput-ok" onclick="confirmDInput()">확인 → 읽기 준비 ▶</button>
+    </div>
+  </div>
+</div>
+
 <!-- ═══ 공유 시트 ═══ -->
 <div class="overlay dn" id="shareOverlay" onclick="onShareClick(event)">
   <div class="sheet">
@@ -288,7 +309,7 @@ body{
    STATE
 ══════════════════════ */
 let Q = [], SAVED = [];
-let curIdx = -1, isOn = false, isPaused = false;
+let curIdx = -1, isOn = false, isPaused = false, wasInterrupted = false;
 let spd = 1.0, selVoice = null, allVoices = [];
 let wakeLock = null, uid = 0;
 let activeTab = 'queue', voiceOpen = false;
@@ -778,6 +799,7 @@ function renderQ(){
           onclick="openShare('${q.url.replace(/'/g,"\\'")}','${esc(q.title).replace(/'/g,"\\'")}')">
           📤 공유
         </button>
+        ${q.status==='error'?`<button class="qa" style="background:rgba(34,197,94,.12);color:var(--gtx)" onclick="openDInput(${i})">✏️ 직접입력</button>`:''}
         <button class="qa qa-del" onclick="removeItem(${q.id})">✕</button>
       </div>
       <div class="q-site-wrap${siteOpen?' open':''}" id="site-${q.id}">
@@ -872,7 +894,9 @@ function detectLang(text){
 }
 
 function togglePlay(){
-  if(!isOn){
+  if(isPaused && wasInterrupted){
+    announceAndResume();
+  } else if(!isOn){
     if(curIdx>=0&&Q[curIdx]?.status==='ready') playAt(curIdx,true);
     else loadAndPlay(0);
   } else if(isPaused){
@@ -882,8 +906,67 @@ function togglePlay(){
   }
 }
 function stopAll(){
-  TTS.stop(); isOn=false; isPaused=false;
+  TTS.stop(); isOn=false; isPaused=false; wasInterrupted=false;
   setProg(0); updPlayBtn(); renderQ(); releaseWakeLock();
+}
+
+// 화면 복귀 후 재생 재개: "이어서 읽어드릴게요" 안내 후 현재 청크부터 재시작
+async function announceAndResume(){
+  wasInterrupted = false;
+  isPaused = false;
+  updPlayBtn();
+
+  const msg = '이어서 읽어드릴게요';
+  const resume = ()=>{
+    if(TTS._audio){ try{TTS._audio.pause();}catch(_){} TTS._audio=null; }
+    try{ if(speechSynthesis) speechSynthesis.cancel(); }catch(_){}
+    TTS._playing = true;
+    TTS._paused  = false;
+    TTS._next();
+  };
+
+  if(TTS.useAudio){
+    try{
+      const blob = await TTS._fetchAudio(msg);
+      if(blob){
+        const url = URL.createObjectURL(blob);
+        const a = new Audio(url);
+        a.playbackRate = TTS._rate;
+        a.onended = ()=>{ URL.revokeObjectURL(url); resume(); };
+        a.onerror  = ()=>{ URL.revokeObjectURL(url); resume(); };
+        a.play();
+        return;
+      }
+    }catch(_){}
+  }
+  if(window.speechSynthesis){
+    const u = new SpeechSynthesisUtterance(msg);
+    if(selVoice) u.voice = selVoice;
+    u.lang = 'ko-KR'; u.rate = TTS._rate;
+    u.onend  = resume;
+    u.onerror = resume;
+    speechSynthesis.speak(u);
+  } else { resume(); }
+}
+
+/* ══════════════════════
+   직접 텍스트 입력 (접속 불가 사이트 대비)
+══════════════════════ */
+let _dInputIdx = -1;
+function openDInput(idx){ _dInputIdx=idx; document.getElementById('directInputModal').classList.remove('dn'); document.getElementById('directInputArea').value=''; setTimeout(()=>document.getElementById('directInputArea').focus(),100); }
+function closeDInput(){ document.getElementById('directInputModal').classList.add('dn'); _dInputIdx=-1; }
+function onDInputClick(e){ if(e.target.id==='directInputModal') closeDInput(); }
+function confirmDInput(){
+  const text = document.getElementById('directInputArea').value.trim();
+  if(!text||_dInputIdx<0) return;
+  const q=Q[_dInputIdx]; if(!q) return;
+  q.content = text.slice(0,10000);
+  // 첫 줄이 제목처럼 보이면 제목으로 사용
+  const firstLine = text.split('\n')[0].trim();
+  if(q.title===shortHost(q.url)||q.title==='(제목 없음)') q.title=firstLine.slice(0,60)||q.title;
+  q.status='ready'; q.err='';
+  closeDInput(); renderQ(); saveQ();
+  showToast('✏️ 텍스트 입력 완료! 재생 가능합니다.');
 }
 function nextArt(){
   const ni=Q.findIndex((q,i)=>i>curIdx&&(q.status==='ready'||q.status==='pending'));
@@ -923,7 +1006,19 @@ function releaseWakeLock(){
   try{ if(wakeLock){ wakeLock.release(); wakeLock=null; } }catch(_){}
 }
 document.addEventListener('visibilitychange',()=>{
-  if(document.visibilityState==='visible'&&isOn) requestWakeLock();
+  if(document.visibilityState==='hidden'){
+    // Web Speech API는 화면 꺼짐 시 강제 중단됨 → 재개 안내 플래그 설정
+    if(isOn && !isPaused && TTS.useAudio===false){
+      wasInterrupted = true;
+      isPaused = true;
+      TTS._paused = true;
+      try{ speechSynthesis.cancel(); }catch(_){}
+      updPlayBtn();
+    }
+    // Google TTS (HTML5 Audio)는 백그라운드에서도 계속 재생 → 별도 처리 불필요
+  } else {
+    if(isOn) requestWakeLock();
+  }
 });
 
 /* ══════════════════════
