@@ -36,22 +36,29 @@ body{
   min-height:100vh;
 }
 /* HEADER */
-.hd{text-align:center;padding:18px 16px 4px;background:radial-gradient(ellipse at 50% 0%,rgba(124,58,237,.3) 0%,transparent 60%);flex-shrink:0}
+.hd{text-align:center;padding:22px 16px 8px;background:radial-gradient(ellipse at 50% 0%,rgba(124,58,237,.3) 0%,transparent 60%);flex-shrink:0}
 .hd-ti{font-size:22px;font-weight:900;background:linear-gradient(110deg,#c4b5fd 0%,#818cf8 45%,#38bdf8 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:2px}
 .hd-su{color:var(--mu);font-size:11px;display:flex;align-items:center;justify-content:center;gap:6px}
 .tts-badge{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:700}
 .tts-badge.hi{background:rgba(34,197,94,.15);color:var(--gtx)}
 .tts-badge.lo{background:rgba(167,139,250,.15);color:var(--hi)}
 /* TABS */
-.tabs{display:flex;flex-shrink:0;margin:8px 16px 0;background:var(--card);border:1px solid var(--brd);border-radius:13px;overflow:hidden;max-width:560px;align-self:center;width:calc(100% - 32px)}
+.tabs{display:flex;flex-shrink:0;margin:10px 18px 0;background:var(--card);border:1px solid var(--brd);border-radius:13px;overflow:hidden;max-width:560px;align-self:center;width:calc(100% - 36px)}
 .tab{flex:1;padding:11px 0;background:transparent;border:none;color:var(--mu);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;font-family:inherit}
 .tab.on{background:rgba(124,58,237,.25);color:var(--hi)}
 /* CONTENT */
-.content{flex:1;overflow-y:auto;overflow-x:hidden;padding:8px 16px 4px;display:flex;flex-direction:column;align-items:center}
+.content{flex:1;overflow-y:auto;overflow-x:hidden;padding:10px 18px 8px;display:flex;flex-direction:column;align-items:center}
 .content::-webkit-scrollbar{width:3px}
 .content::-webkit-scrollbar-thumb{background:rgba(167,139,250,.3);border-radius:3px}
-/* URL INPUT */
-.url-row{width:100%;max-width:560px;display:flex;gap:8px;align-items:stretch;background:var(--card);border:1px solid var(--brd);border-radius:14px;padding:8px 8px 8px 14px;margin-bottom:10px;transition:border-color .2s,box-shadow .2s}
+/* URL INPUT — sticky */
+.url-sticky-wrap{
+  position:sticky;top:0;z-index:20;
+  width:100%;max-width:560px;
+  background:linear-gradient(to bottom,var(--bg) 88%,transparent);
+  padding:8px 0 10px;
+  margin-bottom:2px;
+}
+.url-row{width:100%;max-width:560px;display:flex;gap:8px;align-items:stretch;background:rgba(255,255,255,.09);border:1px solid var(--brd);border-radius:14px;padding:8px 8px 8px 14px;transition:border-color .2s,box-shadow .2s}
 .url-row:focus-within{border-color:var(--brd2);box-shadow:0 0 0 3px rgba(124,58,237,.15)}
 #urlInput{flex:1;min-width:0;background:transparent;border:none;outline:none;color:var(--tx);font-size:14px;font-family:inherit;padding:8px 0}
 #urlInput::placeholder{color:var(--mu2);font-size:12px}
@@ -64,13 +71,15 @@ body{
 .btn:disabled{opacity:.4;cursor:not-allowed}
 .btn:not(:disabled):active{transform:scale(.98)}
 /* QUEUE */
-.q-empty{width:100%;max-width:560px;border:1px dashed rgba(167,139,250,.2);border-radius:16px;padding:32px;text-align:center;color:var(--mu2);font-size:13px;margin-bottom:10px}
-.q-list{width:100%;max-width:560px;display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
-.q-item{background:var(--card);border:1px solid var(--brd);border-radius:14px;padding:12px;transition:all .3s;animation:fadeUp .22s ease-out}
-.q-item.active{background:rgba(124,58,237,.18);border-color:rgba(124,58,237,.5);box-shadow:0 0 14px rgba(124,58,237,.2)}
+.q-empty{width:100%;max-width:560px;border:1px dashed rgba(167,139,250,.2);border-radius:16px;padding:36px;text-align:center;color:var(--mu2);font-size:13px;margin-bottom:12px}
+.q-list{width:100%;max-width:560px;display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
+.q-item{background:var(--card);border:1px solid var(--brd);border-radius:16px;padding:14px 14px 12px;transition:all .3s;animation:fadeUp .22s ease-out}
+.q-item.active{background:rgba(124,58,237,.18);border-color:rgba(124,58,237,.5);box-shadow:0 0 16px rgba(124,58,237,.22)}
 .q-item.done{opacity:.45}
 .q-item.err{background:var(--red);border-color:var(--rbrd)}
-.q-main{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.q-main{display:flex;align-items:center;gap:10px;margin-bottom:10px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.q-main:active .q-info{opacity:.7}
+.q-main:active .q-badge{transform:scale(.9)}
 .q-badge{width:28px;height:28px;border-radius:50%;flex-shrink:0;background:rgba(167,139,250,.15);color:var(--hi);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
 .q-item.active .q-badge{background:var(--ac);color:#fff;animation:pulse 1.5s infinite}
 .q-info{flex:1;min-width:0}
@@ -217,10 +226,12 @@ body{
 
   <!-- ═══ 재생목록 탭 ═══ -->
   <div id="tabQueue">
-    <div class="url-row" style="margin-top:8px">
-      <input id="urlInput" type="url" placeholder="기사 URL 붙여넣기 후 + 추가"
-        autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
-      <button class="add-btn" onclick="addUrl()">＋</button>
+    <div class="url-sticky-wrap">
+      <div class="url-row">
+        <input id="urlInput" type="url" placeholder="기사 URL 붙여넣기 후 + 추가"
+          autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+        <button class="add-btn" onclick="addUrl()">＋</button>
+      </div>
     </div>
     <div class="msg msg-e dn" id="errMsg">
       <span id="errTxt"></span>
@@ -794,7 +805,7 @@ function renderQ(){
     const subLine=q.status==='error'?`<div class="q-sub err-t">${esc(q.err.slice(0,60))}</div>`:
                   q.status==='loading'?'<div class="q-sub info">불러오는 중...</div>':'';
     return `<div class="${cls}" id="qitem-${q.id}">
-      <div class="q-main">
+      <div class="q-main" onclick="playOrLoadItem(${i})" title="탭하여 재생">
         <div class="q-badge">${active?'♪':(i+1)}</div>
         <div class="q-info">
           <div class="q-title">${esc(q.title.length>44?q.title.slice(0,44)+'…':q.title)}</div>
@@ -853,6 +864,28 @@ function toggleSite(id, url){
     if(q) wrap.innerHTML = buildSiteHtml(q);
     wrap.classList.add('open');
     if(btn){ btn.textContent='🌐 닫기'; btn.classList.add('open'); }
+  }
+}
+
+/* ══════════════════════
+   기사 탭하여 재생
+══════════════════════ */
+function playOrLoadItem(idx){
+  const q = Q[idx]; if(!q) return;
+  if(q.status === 'loading') return; // 로딩 중엔 무시
+  // 이미 이 기사 재생 중이면 무시
+  if(curIdx === idx && isOn && !isPaused) return;
+  if(q.status === 'ready'){
+    stopAll();
+    setTimeout(()=>playAt(idx, true), 80);
+  } else if(q.status === 'done'){
+    q.status = 'ready';
+    stopAll();
+    setTimeout(()=>playAt(idx, true), 80);
+  } else {
+    // pending or error → 로드 후 재생
+    stopAll();
+    loadAndPlay(idx);
   }
 }
 
