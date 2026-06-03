@@ -36,28 +36,22 @@ body{
   min-height:100vh;
 }
 /* HEADER */
-.hd{text-align:center;padding:22px 16px 8px;background:radial-gradient(ellipse at 50% 0%,rgba(124,58,237,.3) 0%,transparent 60%);flex-shrink:0}
+.hd{text-align:center;padding:22px 20px 8px;background:radial-gradient(ellipse at 50% 0%,rgba(124,58,237,.3) 0%,transparent 60%);flex-shrink:0}
 .hd-ti{font-size:22px;font-weight:900;background:linear-gradient(110deg,#c4b5fd 0%,#818cf8 45%,#38bdf8 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:2px}
 .hd-su{color:var(--mu);font-size:11px;display:flex;align-items:center;justify-content:center;gap:6px}
 .tts-badge{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:700}
 .tts-badge.hi{background:rgba(34,197,94,.15);color:var(--gtx)}
 .tts-badge.lo{background:rgba(167,139,250,.15);color:var(--hi)}
 /* TABS */
-.tabs{display:flex;flex-shrink:0;margin:10px 18px 0;background:var(--card);border:1px solid var(--brd);border-radius:13px;overflow:hidden;max-width:560px;align-self:center;width:calc(100% - 36px)}
+.tabs{display:flex;flex-shrink:0;margin:10px 20px 0;background:var(--card);border:1px solid var(--brd);border-radius:13px;overflow:hidden;max-width:560px;align-self:center;width:calc(100% - 40px)}
 .tab{flex:1;padding:11px 0;background:transparent;border:none;color:var(--mu);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;font-family:inherit}
 .tab.on{background:rgba(124,58,237,.25);color:var(--hi)}
 /* CONTENT */
-.content{flex:1;overflow-y:auto;overflow-x:hidden;padding:10px 18px 8px;display:flex;flex-direction:column;align-items:center}
+.content{flex:1;overflow-y:auto;overflow-x:hidden;padding:8px 20px 8px;display:flex;flex-direction:column;align-items:center}
 .content::-webkit-scrollbar{width:3px}
 .content::-webkit-scrollbar-thumb{background:rgba(167,139,250,.3);border-radius:3px}
-/* URL INPUT — sticky */
-.url-sticky-wrap{
-  position:sticky;top:0;z-index:20;
-  width:100%;max-width:560px;
-  background:linear-gradient(to bottom,var(--bg) 88%,transparent);
-  padding:8px 0 10px;
-  margin-bottom:2px;
-}
+/* URL INPUT 영역 (스크롤 밖 고정) */
+.url-area{flex-shrink:0;padding:10px 20px 4px;width:100%;box-sizing:border-box;display:flex;flex-direction:column;align-items:center}
 .url-row{width:100%;max-width:560px;display:flex;gap:8px;align-items:stretch;background:rgba(255,255,255,.09);border:1px solid var(--brd);border-radius:14px;padding:8px 8px 8px 14px;transition:border-color .2s,box-shadow .2s}
 .url-row:focus-within{border-color:var(--brd2);box-shadow:0 0 0 3px rgba(124,58,237,.15)}
 #urlInput{flex:1;min-width:0;background:transparent;border:none;outline:none;color:var(--tx);font-size:14px;font-family:inherit;padding:8px 0}
@@ -219,24 +213,26 @@ body{
   <button class="tab" id="tabBtnS" onclick="switchTab('saved')">⭐ 저장됨</button>
 </div>
 
+<!-- URL 입력 영역: 스크롤 밖에 고정 -->
+<div class="url-area" id="urlArea">
+  <div class="url-row">
+    <input id="urlInput" type="url" placeholder="기사 URL 붙여넣기 후 + 추가"
+      autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+    <button class="add-btn" onclick="addUrl()">＋</button>
+  </div>
+  <div class="msg msg-e dn" id="errMsg" style="width:100%;max-width:560px;margin-top:6px">
+    <span id="errTxt"></span>
+    <button onclick="hideErr()" style="color:var(--rtx)">✕</button>
+  </div>
+</div>
+
 <div class="content">
-  <div class="msg msg-w dn" id="ttsWarn" style="margin-top:8px">
+  <div class="msg msg-w dn" id="ttsWarn" style="margin-top:4px">
     <span>⚠️ 음성 미지원. Android Chrome 또는 Safari를 이용해주세요.</span>
   </div>
 
   <!-- ═══ 재생목록 탭 ═══ -->
   <div id="tabQueue">
-    <div class="url-sticky-wrap">
-      <div class="url-row">
-        <input id="urlInput" type="url" placeholder="기사 URL 붙여넣기 후 + 추가"
-          autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
-        <button class="add-btn" onclick="addUrl()">＋</button>
-      </div>
-    </div>
-    <div class="msg msg-e dn" id="errMsg">
-      <span id="errTxt"></span>
-      <button onclick="hideErr()" style="color:var(--rtx)">✕</button>
-    </div>
     <div class="q-empty" id="qEmpty">
       <div style="font-size:38px;margin-bottom:10px">📋</div>
       URL을 추가하면 여기에 목록이 표시됩니다<br>
@@ -588,6 +584,8 @@ function switchTab(tab){
   $('tabBtnS').className='tab'+(tab==='saved'?' on':'');
   tab==='queue'?show('tabQueue'):hide('tabQueue');
   tab==='saved'?show('tabSaved'):hide('tabSaved');
+  // URL 입력창: 재생목록 탭에서만 표시
+  const ua=$('urlArea'); if(ua) ua.style.display=(tab==='queue')?'':'none';
 }
 
 /* ══════════════════════
