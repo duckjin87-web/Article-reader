@@ -22,7 +22,7 @@
   --grn:rgba(34,197,94,.12); --gbrd:rgba(34,197,94,.32); --gtx:#86efac;
   --ylw:rgba(251,191,36,.10); --ybrd:rgba(251,191,36,.32); --ytx:#fde68a;
   --gold:#fbbf24;
-  --player-h:224px;
+  --player-h:300px;
 }
 html,body{
   height:100%;
@@ -159,11 +159,16 @@ body{
 .cb.xs{width:52px;height:52px;font-size:20px}
 .cb.sm{width:62px;height:62px;font-size:24px}
 .cb.lg{width:86px;height:86px;font-size:38px;background:linear-gradient(135deg,var(--ac),var(--ac2));color:#fff;border:none;box-shadow:0 0 28px rgba(124,58,237,.6)}
-/* 속도 버튼 (2배) */
-.spd-row{display:flex;gap:5px}
-.sb{flex:1;padding:10px 0;border-radius:10px;border:none;background:rgba(255,255,255,.07);color:var(--mu);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s}
-.sb.on{background:linear-gradient(135deg,var(--ac),var(--ac2));color:#fff}
-.sb:active{transform:scale(.93)}
+/* 배속 슬라이더 */
+.spd-row{display:flex;align-items:center;gap:10px;padding:4px 0}
+.spd-lbl{font-size:11px;color:var(--mu);flex-shrink:0;white-space:nowrap}
+.spd-val{font-size:14px;font-weight:800;color:var(--hi);flex-shrink:0;min-width:42px;text-align:right}
+.spd-sl{flex:1;-webkit-appearance:none;appearance:none;height:5px;border-radius:5px;outline:none;cursor:pointer;background:rgba(255,255,255,.15)}
+.spd-sl::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--ac),var(--ac2));cursor:pointer;box-shadow:0 0 12px rgba(124,58,237,.6)}
+.spd-sl::-moz-range-thumb{width:28px;height:28px;border:none;border-radius:50%;background:linear-gradient(135deg,var(--ac),var(--ac2));cursor:pointer}
+/* 읽는 부분 표시 (카라오케) */
+.reading-strip{font-size:12.5px;line-height:1.7;color:rgba(240,238,252,.6);background:rgba(255,255,255,.04);border:1px solid rgba(167,139,250,.14);border-radius:10px;padding:8px 13px;margin-bottom:7px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.rdhlt{background:rgba(251,191,36,.35);color:var(--gold);border-radius:4px;padding:0 3px;font-weight:700;font-size:13px}
 /* 직접입력 모달 */
 .dinput-modal{position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:400;display:flex;align-items:center;justify-content:center;padding:16px;animation:fadeIn .18s}
 .dinput-inner{background:#1a1730;border:1px solid var(--brd);border-radius:20px;padding:20px;width:100%;max-width:520px;animation:fadeUp .2s}
@@ -255,6 +260,7 @@ body{
     <div class="pl-title" id="plTitle">기사를 추가하고 재생을 눌러주세요</div>
     <button class="pl-icon-btn" onclick="shareCurrentArticle()" title="공유">📤</button>
   </div>
+  <div class="reading-strip dn" id="readingStrip"></div>
   <div class="prog-wrap"><div class="prog-fill" id="progFill"></div></div>
   <div class="ctrls">
     <button class="cb xs" onclick="prevArt()">⏮</button>
@@ -264,11 +270,11 @@ body{
     <button class="cb xs" onclick="restartCur()">🔄</button>
   </div>
   <div class="spd-row">
-    <button class="sb" onclick="setSpd(.8)">0.8x</button>
-    <button class="sb on" onclick="setSpd(1)">1.0x</button>
-    <button class="sb" onclick="setSpd(1.2)">1.2x</button>
-    <button class="sb" onclick="setSpd(1.5)">1.5x</button>
-    <button class="sb" onclick="setSpd(2)">2.0x</button>
+    <span class="spd-lbl">🐢 배속</span>
+    <input type="range" id="spdSlider" class="spd-sl"
+      min="0.5" max="2.0" step="0.1" value="1.0"
+      oninput="setSpd(parseFloat(this.value))">
+    <span class="spd-val" id="spdVal">1.0x</span>
   </div>
 </div>
 
@@ -330,7 +336,7 @@ const TTS = {
   useAudio: null,  // null=미확인, true=Google, false=WebSpeech
   _chunks: [], _idx: 0, _offset: 0, _totalLen: 0,
   _playing: false, _paused: false, _audio: null,
-  _onProgress: null, _onDone: null,
+  _onProgress: null, _onDone: null, _onChunkStart: null,
   _rate: 1.0, _lang: 'ko',
 
   // /api/tts 가용 여부 확인
@@ -407,6 +413,7 @@ const TTS = {
       return;
     }
     const txt = this._chunks[this._idx];
+    if(this._onChunkStart) this._onChunkStart(txt);
 
     if(this.useAudio){
       const blob = await this._fetchAudio(txt);
@@ -434,9 +441,11 @@ const TTS = {
     this._audio = a;
     a.ontimeupdate = ()=>{
       if(!a.duration) return;
-      const absChar = this._offset + Math.round(a.currentTime/a.duration * txt.length);
-      const pct = Math.min(99, (this._offset + a.currentTime/a.duration * txt.length) / this._totalLen * 100);
-      if(this._onProgress) this._onProgress(pct, absChar);
+      const ratio    = a.currentTime / a.duration;
+      const chunkPos = Math.round(ratio * txt.length);
+      const absChar  = this._offset + chunkPos;
+      const pct      = Math.min(99, absChar / this._totalLen * 100);
+      if(this._onProgress) this._onProgress(pct, absChar, txt, chunkPos, 0);
     };
     a.onended = ()=>{
       URL.revokeObjectURL(url);
@@ -462,8 +471,8 @@ const TTS = {
     u.onboundary = e=>{
       if(e.name!=='word') return;
       const absChar = this._offset + e.charIndex;
-      const pct = Math.min(99, absChar / this._totalLen * 100);
-      if(this._onProgress) this._onProgress(pct, absChar);
+      const pct     = Math.min(99, absChar / this._totalLen * 100);
+      if(this._onProgress) this._onProgress(pct, absChar, txt, e.charIndex, e.charLength||1);
     };
     u.onend = ()=>{ this._offset+=txt.length+1; this._idx++; this._next(); };
     u.onerror = e=>{ if(e.error==='interrupted'||e.error==='canceled') return; this._offset+=txt.length+1; this._idx++; this._next(); };
@@ -494,7 +503,13 @@ const TTS = {
   }
 };
 
-TTS._onProgress = (pct, absChar) => { setProg(pct); };
+TTS._onProgress = (pct, absChar, chunk, chunkPos, wordLen) => {
+  setProg(pct);
+  if(chunk) updateReadingText(chunk, chunkPos, wordLen);
+};
+TTS._onChunkStart = (chunk) => {
+  updateReadingText(chunk, 0, 0);
+};
 TTS._onDone = () => {
   isOn=false; isPaused=false; setProg(100); updPlayBtn();
   if(curIdx>=0){ Q[curIdx].status='done'; renderQ(); saveQ(); }
@@ -523,7 +538,8 @@ TTS._onDone = () => {
   if(speechSynthesis){ loadVoices(); speechSynthesis.onvoiceschanged=loadVoices; }
 
   try{ const s=parseFloat(localStorage.getItem(LS_SPD)); if(!isNaN(s)) spd=s; TTS._rate=spd; }catch(_){}
-  highlightSpd();
+  // slider 초기값 설정은 DOM 준비 후 실행
+  setTimeout(()=>highlightSpd(), 0);
   try{
     const raw=localStorage.getItem(LS_Q);
     if(raw){ Q=JSON.parse(raw).map(x=>({...x,status:x.status==='loading'?'pending':x.status})); uid=Math.max(0,...Q.map(q=>q.id)); renderQ(); }
@@ -871,7 +887,10 @@ function playAt(idx, autoNext){
   TTS.stop();
   curIdx=idx; isOn=true; isPaused=false;
   $('plTitle').textContent=q.title;
-  setProg(0); renderQ();
+  setProg(0);
+  const _rs=document.getElementById('readingStrip');
+  if(_rs){ _rs.innerHTML='<span style="opacity:.4">⏳ 읽는 중…</span>'; _rs.classList.remove('dn'); }
+  renderQ();
   requestWakeLock();
   TTS._onDone = ()=>{
     isOn=false; isPaused=false; setProg(100); updPlayBtn();
@@ -908,6 +927,7 @@ function togglePlay(){
 function stopAll(){
   TTS.stop(); isOn=false; isPaused=false; wasInterrupted=false;
   setProg(0); updPlayBtn(); renderQ(); releaseWakeLock();
+  const _rs=document.getElementById('readingStrip'); if(_rs) _rs.classList.add('dn');
 }
 
 // 화면 복귀 후 재생 재개: "이어서 읽어드릴게요" 안내 후 현재 청크부터 재시작
@@ -986,14 +1006,69 @@ function restartCur(){
     stopAll(); setTimeout(()=>playAt(curIdx,true),100);
   }
 }
+/* ══════════════════════
+   읽는 부분 표시 (카라오케)
+══════════════════════ */
+function updateReadingText(chunk, pos, wordLen){
+  const rs = document.getElementById('readingStrip');
+  if(!rs || !chunk) return;
+
+  // 현재 단어 범위 계산
+  let start = pos, end = pos;
+  if(wordLen > 0){
+    // Web Speech onboundary: 정확한 단어 위치
+    end = pos + wordLen;
+  } else {
+    // Google TTS: 시간 비율로 추정한 위치 → 단어 경계 찾기
+    while(start > 0 && !/[ \n]/.test(chunk[start-1])) start--;
+    end = pos;
+    while(end < chunk.length && !/[ \n.,!?。]/.test(chunk[end])) end++;
+    if(end <= start) end = Math.min(chunk.length, start + 6);
+  }
+
+  // 100자 슬라이딩 윈도우 (현재 단어를 중심으로)
+  const WIN = 100;
+  const mid = (start + end) >> 1;
+  let ws = Math.max(0, mid - Math.floor(WIN / 2));
+  let we = Math.min(chunk.length, ws + WIN);
+  if(we - ws < WIN) ws = Math.max(0, we - WIN);
+
+  const rS = Math.max(0, start - ws);
+  const rE = Math.min(we - ws, end - ws);
+  const win = chunk.slice(ws, we);
+
+  const b = esc(win.slice(0, rS));
+  const h = esc(win.slice(rS, rE));
+  const a = esc(win.slice(rE));
+
+  rs.innerHTML =
+    (ws > 0 ? '<span style="opacity:.35">…</span>' : '') +
+    b + (h ? `<span class="rdhlt">${h}</span>` : '') + a +
+    (we < chunk.length ? '<span style="opacity:.35">…</span>' : '');
+  rs.classList.remove('dn');
+}
+
 function setSpd(v){
-  spd=v; TTS.setRate(v); highlightSpd();
-  try{ localStorage.setItem(LS_SPD,String(v)); }catch(_){}
+  spd = parseFloat(parseFloat(v).toFixed(1));
+  TTS.setRate(spd);
+  const valEl = document.getElementById('spdVal');
+  if(valEl) valEl.textContent = spd.toFixed(1)+'x';
+  updateSliderTrack();
+  try{ localStorage.setItem(LS_SPD,String(spd)); }catch(_){}
 }
 function highlightSpd(){
-  document.querySelectorAll('.sb').forEach(b=>{
-    b.classList.toggle('on',Math.abs(parseFloat(b.textContent)-spd)<0.01);
-  });
+  const sl = document.getElementById('spdSlider');
+  const valEl = document.getElementById('spdVal');
+  if(sl){ sl.value = spd; }
+  if(valEl) valEl.textContent = spd.toFixed(1)+'x';
+  updateSliderTrack();
+}
+function updateSliderTrack(){
+  const sl = document.getElementById('spdSlider');
+  if(!sl) return;
+  const min=0.5, max=2.0;
+  const pct = (spd - min) / (max - min) * 100;
+  sl.style.background = `linear-gradient(to right,var(--ac) ${pct}%,rgba(255,255,255,.15) ${pct}%)`;
 }
 
 /* ══════════════════════
