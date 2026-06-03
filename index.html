@@ -47,12 +47,12 @@ body{
 .tab{flex:1;padding:11px 0;background:transparent;border:none;color:var(--mu);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;font-family:inherit}
 .tab.on{background:rgba(124,58,237,.25);color:var(--hi)}
 /* CONTENT */
-.content{flex:1;overflow-y:auto;overflow-x:hidden;padding:8px 20px 8px;display:flex;flex-direction:column;align-items:center}
+.content{flex:1;overflow-y:auto;overflow-x:hidden;padding:8px 20px 8px;display:flex;flex-direction:column;align-items:center;width:100%;box-sizing:border-box}
 .content::-webkit-scrollbar{width:3px}
 .content::-webkit-scrollbar-thumb{background:rgba(167,139,250,.3);border-radius:3px}
 /* URL INPUT 영역 (스크롤 밖 고정) */
-.url-area{flex-shrink:0;padding:10px 20px 4px;width:100%;box-sizing:border-box;display:flex;flex-direction:column;align-items:center}
-.url-row{width:100%;max-width:560px;display:flex;gap:8px;align-items:stretch;background:rgba(255,255,255,.09);border:1px solid var(--brd);border-radius:14px;padding:8px 8px 8px 14px;transition:border-color .2s,box-shadow .2s}
+.url-area{flex-shrink:0;padding:10px 20px 4px;width:100%;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;overflow:hidden}
+.url-row{width:100%;max-width:560px;display:flex;gap:8px;align-items:stretch;background:rgba(255,255,255,.09);border:1px solid var(--brd);border-radius:14px;padding:8px 8px 8px 14px;transition:border-color .2s,box-shadow .2s;box-sizing:border-box;min-width:0}
 .url-row:focus-within{border-color:var(--brd2);box-shadow:0 0 0 3px rgba(124,58,237,.15)}
 #urlInput{flex:1;min-width:0;background:transparent;border:none;outline:none;color:var(--tx);font-size:14px;font-family:inherit;padding:8px 0}
 #urlInput::placeholder{color:var(--mu2);font-size:12px}
@@ -67,7 +67,7 @@ body{
 /* QUEUE */
 .q-empty{width:100%;max-width:560px;border:1px dashed rgba(167,139,250,.2);border-radius:16px;padding:36px;text-align:center;color:var(--mu2);font-size:13px;margin-bottom:12px}
 .q-list{width:100%;max-width:560px;display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
-.q-item{background:var(--card);border:1px solid var(--brd);border-radius:16px;padding:14px 14px 12px;transition:all .3s;animation:fadeUp .22s ease-out}
+.q-item{background:var(--card);border:1px solid var(--brd);border-radius:16px;padding:14px 14px 12px;transition:all .3s;animation:fadeUp .22s ease-out;overflow:hidden;min-width:0;box-sizing:border-box}
 .q-item.active{background:rgba(124,58,237,.18);border-color:rgba(124,58,237,.5);box-shadow:0 0 16px rgba(124,58,237,.22)}
 .q-item.done{opacity:.45}
 .q-item.err{background:var(--red);border-color:var(--rbrd)}
@@ -792,8 +792,9 @@ function clearAll(){ stopAll(); Q=[]; curIdx=-1; openSites.clear(); renderQ(); s
 
 function renderQ(){
   const empty=Q.length===0;
-  $('qEmpty').style.display=empty?'block':'none';
-  $('qActions').style.display=empty?'none':'block';
+  // style.display 대신 classList로 제어 (display:none!important 충돌 방지)
+  empty ? $('qEmpty').classList.remove('dn') : $('qEmpty').classList.add('dn');
+  empty ? $('qActions').classList.add('dn') : $('qActions').classList.remove('dn');
   $('qList').innerHTML=Q.map((q,i)=>{
     const active=(i===curIdx&&isOn);
     const saved=SAVED.some(s=>s.url===q.url);
