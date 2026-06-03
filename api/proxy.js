@@ -1,5 +1,12 @@
 // Vercel 서버리스 프록시 — CORS 우회 없이 서버에서 직접 URL 가져옴
 export default async function handler(req, res) {
+  // 출처 체크: 우리 앱 또는 localhost에서 온 요청만 허용
+  const origin  = req.headers['origin']  || '';
+  const referer = req.headers['referer'] || '';
+  const allowed = origin.includes('vercel.app') || origin.includes('localhost') ||
+                  referer.includes('vercel.app') || referer.includes('localhost');
+  if (origin && !allowed) return res.status(403).json({ error: 'Forbidden' });
+
   const { url } = req.query;
 
   if (!url) {
