@@ -178,9 +178,11 @@ body{
   border-radius:10px;
   padding:8px 13px;
   margin-bottom:7px;
-  height:calc(13px * 1.65 * 3 + 16px); /* 정확히 3줄 */
-  overflow:hidden; /* scrollTop으로 제어, 스크롤바 숨김 */
+  box-sizing:border-box;
+  height:calc(13px * 1.65 * 3 + 8px * 2); /* 패딩 포함 정확히 3줄 */
+  overflow:hidden;
   word-break:break-word;
+  white-space:pre-wrap;
 }
 .rdhlt{background:rgba(251,191,36,.38);color:var(--gold);border-radius:4px;padding:1px 3px;font-weight:700}
 /* 예상 읽기 시간 */
@@ -557,7 +559,7 @@ TTS._onDone = () => {
   }
   if(speechSynthesis){ loadVoices(); speechSynthesis.onvoiceschanged=loadVoices; }
 
-  try{ const s=parseFloat(localStorage.getItem(LS_SPD)); if(!isNaN(s)) spd=s; TTS._rate=spd; }catch(_){}
+  try{ const s=parseFloat(localStorage.getItem(LS_SPD)); if(!isNaN(s)) spd=Math.max(0.8,Math.min(2.0,s)); TTS._rate=spd; }catch(_){}
   // slider 초기값 설정은 DOM 준비 후 실행
   setTimeout(()=>highlightSpd(), 0);
   try{
