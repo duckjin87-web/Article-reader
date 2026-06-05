@@ -172,6 +172,7 @@ body{
 .spd-sl::-moz-range-thumb{width:28px;height:28px;border:none;border-radius:50%;background:linear-gradient(135deg,var(--ac),var(--ac2));cursor:pointer}
 /* 읽는 부분 표시 — 3줄, 현재 문장 가운데 고정 */
 .reading-strip{
+  position:relative;
   font-size:13px;line-height:1.65;
   color:rgba(240,238,252,.65);
   background:rgba(255,255,255,.04);
@@ -180,11 +181,13 @@ body{
   padding:8px 13px;
   margin-bottom:7px;
   box-sizing:border-box;
-  height:calc(13px * 1.65 * 3 + 8px * 2); /* 패딩 포함 정확히 3줄 */
-  overflow:hidden;
+  height:calc(13px * 1.65 * 3 + 8px * 2);
+  overflow-y:scroll;
+  scrollbar-width:none;
   word-break:break-word;
   white-space:pre-wrap;
 }
+.reading-strip::-webkit-scrollbar{display:none}
 .rdhlt{background:rgba(251,191,36,.38);color:var(--gold);border-radius:4px;padding:1px 3px;font-weight:700}
 /* 예상 읽기 시간 */
 .q-rt{font-size:10px;color:var(--mu2);flex-shrink:0;white-space:nowrap;padding:0 6px;line-height:1.4;text-align:right}
@@ -360,7 +363,7 @@ const TTS = {
   _chunks: [], _idx: 0, _offset: 0, _totalLen: 0,
   _playing: false, _paused: false, _audio: null,
   _onProgress: null, _onDone: null, _onChunkStart: null,
-  _rate: 1.0, _lang: 'ko',
+  _rate: 1.0, _lang: 'ko', _gen: 0,
 
   // /api/tts 가용 여부 확인
   async checkAvail(){
@@ -418,6 +421,7 @@ const TTS = {
   },
 
   async start(text, lang){
+    this._gen++;
     this.stop();
     await this.checkAvail();
     this._chunks = this._split(text);
@@ -430,6 +434,7 @@ const TTS = {
 
   async _next(){
     if(!this._playing){ return; }
+    const myGen = this._gen;
     if(this._idx >= this._chunks.length){
       this._playing = false;
       if(this._onDone) this._onDone();
@@ -440,9 +445,11 @@ const TTS = {
 
     if(this.useAudio){
       const blob = await this._fetchAudio(txt);
+      if(this._gen !== myGen) return; // 스킵/정지로 무효화된 fetch
       if(blob){ this._playBlob(blob, txt); return; }
       this.useAudio = false; this._updateBadge();
     }
+    if(this._gen !== myGen) return;
     this._playSpeech(txt);
   },
 
@@ -1041,40 +1048,38 @@ function confirmDInput(){
 function skipFwd(sec){
   if(!TTS._chunks.length) return;
 
-  // Google TTS (Audio element): seek within current audio chunk
+  // 현재 절대 글자 위치 계산
+  let curAbs = TTS._offset;
   if(TTS.useAudio && TTS._audio && TTS._audio.duration > 0){
+    const ratio = TTS._audio.currentTime / TTS._audio.duration;
+    curAbs += Math.round(ratio * (TTS._chunks[TTS._idx]||'').length);
+  }
+
+  // Google TTS + 앞으로 스킵: 현재 청크 안에서 seek 가능하면 직접 seek
+  if(sec > 0 && TTS.useAudio && TTS._audio && TTS._audio.duration > 0){
     const newTime = TTS._audio.currentTime + sec * TTS._rate;
-    if(newTime >= 0 && newTime < TTS._audio.duration - 0.05){
+    if(newTime < TTS._audio.duration - 0.05){
       TTS._audio.currentTime = newTime;
-      showToast(sec > 0 ? '⏩ +10초' : '⏪ -10초');
+      showToast('⏩ +10초');
       return;
     }
-    if(newTime < 0){
-      TTS._audio.currentTime = 0;
-      showToast('⏪ 처음');
-      return;
-    }
-    // 청크 끝을 넘음 → 다음 청크로
+  }
+
+  // 현재 재생 중단 (in-flight fetch 무효화 포함)
+  if(TTS._audio){
     TTS._audio.onended = null; TTS._audio.onerror = null;
     TTS._audio.pause();
     try{ URL.revokeObjectURL(TTS._audio.src); }catch(_){}
     TTS._audio = null;
-    TTS._offset += (TTS._chunks[TTS._idx]||'').length + 1;
-    TTS._idx++;
-    TTS._playing = true; TTS._paused = false;
-    if(TTS._idx < TTS._chunks.length){ TTS._next(); }
-    else{ TTS._playing = false; if(TTS._onDone) TTS._onDone(); }
-    showToast('⏩ +10초');
-    return;
   }
-
-  // Web Speech: 글자 수 기반으로 대상 청크 계산 (한국어 약 5자/초 @ 1x)
-  const skipChars = Math.round(sec * spd * 5);
-  const targetAbs = Math.max(0, Math.min(TTS._totalLen - 1, TTS._offset + skipChars));
-
   try{ if(speechSynthesis) speechSynthesis.cancel(); }catch(_){}
-  TTS._audio = null;
+  TTS._gen++; // 진행 중이던 _fetchAudio를 무효화
 
+  // 절대 위치 기준 목표 글자 수 (한국어 약 5자/초 @ 1x)
+  const skipChars = Math.round(sec * spd * 5);
+  const targetAbs = Math.max(0, Math.min(TTS._totalLen - 1, curAbs + skipChars));
+
+  // 목표 청크 탐색
   let off = 0;
   for(let i = 0; i < TTS._chunks.length; i++){
     const nextOff = off + TTS._chunks[i].length + 1;
@@ -1087,6 +1092,9 @@ function skipFwd(sec){
     }
     off = nextOff;
   }
+
+  TTS._playing = false;
+  if(TTS._onDone) TTS._onDone();
 }
 
 function nextArt(){
