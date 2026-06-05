@@ -160,6 +160,7 @@ body{
 .cb{border-radius:50%;border:1px solid var(--brd);background:var(--card);color:var(--hi2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
 .cb:active{transform:scale(.87)}
 .cb.xs{width:52px;height:52px;font-size:20px}
+.cb.skip{font-size:12px;font-weight:700;letter-spacing:-.3px;line-height:1.2;color:var(--hi)}
 .cb.sm{width:62px;height:62px;font-size:24px}
 .cb.lg{width:86px;height:86px;font-size:38px;background:linear-gradient(135deg,var(--ac),var(--ac2));color:#fff;border:none;box-shadow:0 0 28px rgba(124,58,237,.6)}
 /* 배속 슬라이더 */
@@ -285,10 +286,10 @@ body{
   <div class="reading-strip dn" id="readingStrip"></div>
   <div class="prog-wrap"><div class="prog-fill" id="progFill"></div></div>
   <div class="ctrls">
-    <button class="cb xs" onclick="prevArt()">⏮</button>
+    <button class="cb xs skip" onclick="skipFwd(-10)" title="-10초">-10s</button>
     <button class="cb sm" onclick="stopAll()">⏹</button>
     <button class="cb lg" id="playBtn" onclick="togglePlay()">▶</button>
-    <button class="cb sm" onclick="nextArt()">⏭</button>
+    <button class="cb sm" onclick="skipFwd(10)" title="+10초">+10s</button>
     <button class="cb xs" onclick="restartCur()">🔄</button>
   </div>
   <div class="spd-row">
@@ -1037,6 +1038,57 @@ function confirmDInput(){
   closeDInput(); renderQ(); saveQ();
   showToast('✏️ 텍스트 입력 완료! 재생 가능합니다.');
 }
+function skipFwd(sec){
+  if(!TTS._chunks.length) return;
+
+  // Google TTS (Audio element): seek within current audio chunk
+  if(TTS.useAudio && TTS._audio && TTS._audio.duration > 0){
+    const newTime = TTS._audio.currentTime + sec * TTS._rate;
+    if(newTime >= 0 && newTime < TTS._audio.duration - 0.05){
+      TTS._audio.currentTime = newTime;
+      showToast(sec > 0 ? '⏩ +10초' : '⏪ -10초');
+      return;
+    }
+    if(newTime < 0){
+      TTS._audio.currentTime = 0;
+      showToast('⏪ 처음');
+      return;
+    }
+    // 청크 끝을 넘음 → 다음 청크로
+    TTS._audio.onended = null; TTS._audio.onerror = null;
+    TTS._audio.pause();
+    try{ URL.revokeObjectURL(TTS._audio.src); }catch(_){}
+    TTS._audio = null;
+    TTS._offset += (TTS._chunks[TTS._idx]||'').length + 1;
+    TTS._idx++;
+    TTS._playing = true; TTS._paused = false;
+    if(TTS._idx < TTS._chunks.length){ TTS._next(); }
+    else{ TTS._playing = false; if(TTS._onDone) TTS._onDone(); }
+    showToast('⏩ +10초');
+    return;
+  }
+
+  // Web Speech: 글자 수 기반으로 대상 청크 계산 (한국어 약 5자/초 @ 1x)
+  const skipChars = Math.round(sec * spd * 5);
+  const targetAbs = Math.max(0, Math.min(TTS._totalLen - 1, TTS._offset + skipChars));
+
+  try{ if(speechSynthesis) speechSynthesis.cancel(); }catch(_){}
+  TTS._audio = null;
+
+  let off = 0;
+  for(let i = 0; i < TTS._chunks.length; i++){
+    const nextOff = off + TTS._chunks[i].length + 1;
+    if(nextOff > targetAbs || i === TTS._chunks.length - 1){
+      TTS._idx = i; TTS._offset = off;
+      TTS._playing = true; TTS._paused = false;
+      TTS._next();
+      showToast(sec > 0 ? '⏩ +10초' : '⏪ -10초');
+      return;
+    }
+    off = nextOff;
+  }
+}
+
 function nextArt(){
   const ni=Q.findIndex((q,i)=>i>curIdx&&(q.status==='ready'||q.status==='pending'));
   if(ni!==-1){ stopAll(); loadAndPlay(ni); }
