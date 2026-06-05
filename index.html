@@ -1036,7 +1036,7 @@ function skipFwd(sec){
     curAbs += Math.round(ratio * (TTS._chunks[TTS._idx]||'').length);
   }
 
-  // Google TTS + 앞으로 스킵: 현재 청크 안에서 seek 가능하면 직접 seek
+  // Google TTS + 앞으로: 현재 오디오 안에서 seek 가능하면 직접 seek
   if(sec > 0 && TTS.useAudio && TTS._audio && TTS._audio.duration > 0){
     const newTime = TTS._audio.currentTime + sec * TTS._rate;
     if(newTime < TTS._audio.duration - 0.05){
@@ -1054,10 +1054,10 @@ function skipFwd(sec){
     TTS._audio = null;
   }
   try{ if(speechSynthesis) speechSynthesis.cancel(); }catch(_){}
-  TTS._gen++; // 진행 중이던 _fetchAudio를 무효화
+  TTS._gen++;
 
-  // 절대 위치 기준 목표 글자 수 (한국어 약 5자/초 @ 1x)
-  const skipChars = Math.round(sec * spd * 5);
+  // 절대 위치 기준 목표 글자 수 (한국어 약 10자/초 @ 1x)
+  const skipChars = Math.round(sec * spd * 10);
   const targetAbs = Math.max(0, Math.min(TTS._totalLen - 1, curAbs + skipChars));
 
   // 목표 청크 탐색
@@ -1065,6 +1065,11 @@ function skipFwd(sec){
   for(let i = 0; i < TTS._chunks.length; i++){
     const nextOff = off + TTS._chunks[i].length + 1;
     if(nextOff > targetAbs || i === TTS._chunks.length - 1){
+      // 앞으로 스킵인데 같은 청크에 머무는 경우 → 최소 다음 청크로 이동
+      if(sec > 0 && i === TTS._idx && i < TTS._chunks.length - 1){
+        i++;
+        off = nextOff;
+      }
       TTS._idx = i; TTS._offset = off;
       TTS._playing = true; TTS._paused = false;
       TTS._next();
