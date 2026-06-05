@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>기사 읽어주기</title>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0d0b1e">
+<meta name="theme-color" content="#f7f5ff">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="기사읽기">
@@ -14,19 +14,19 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#0d0b1e; --card:rgba(255,255,255,.07);
-  --brd:rgba(167,139,250,.22); --brd2:rgba(167,139,250,.55);
-  --ac:#7c3aed; --ac2:#4f46e5; --hi:#c4b5fd; --hi2:#818cf8; --sky:#38bdf8;
-  --tx:#f0eefc; --mu:#94a3b8; --mu2:#64748b;
-  --red:rgba(239,68,68,.13); --rbrd:rgba(239,68,68,.38); --rtx:#fca5a5;
-  --grn:rgba(34,197,94,.12); --gbrd:rgba(34,197,94,.32); --gtx:#86efac;
-  --ylw:rgba(251,191,36,.10); --ybrd:rgba(251,191,36,.32); --ytx:#fde68a;
-  --gold:#fbbf24;
-  --player-h:300px;
+  --bg:#f5f3ff; --card:rgba(255,255,255,.92);
+  --brd:rgba(139,92,246,.22); --brd2:rgba(109,40,217,.45);
+  --ac:#7c3aed; --ac2:#6d28d9; --hi:#6d28d9; --hi2:#7c3aed; --sky:#0284c7;
+  --tx:#1e1b4b; --mu:#64748b; --mu2:#94a3b8;
+  --red:rgba(239,68,68,.08); --rbrd:rgba(239,68,68,.3); --rtx:#dc2626;
+  --grn:rgba(34,197,94,.1); --gbrd:rgba(34,197,94,.3); --gtx:#16a34a;
+  --ylw:rgba(251,191,36,.1); --ybrd:rgba(251,191,36,.3); --ytx:#b45309;
+  --gold:#d97706;
+  --player-h:290px;
 }
 html,body{
   height:100%;
-  background:linear-gradient(160deg,#0d0b1e 0%,#12103a 100%);
+  background:linear-gradient(160deg,#f7f5ff 0%,#eef6ff 100%);
   font-family:'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
   color:var(--tx); overflow-x:hidden;
 }
@@ -35,24 +35,20 @@ body{
   padding-bottom:calc(var(--player-h) + env(safe-area-inset-bottom,0px));
   min-height:100vh;
 }
-/* HEADER */
-.hd{text-align:center;padding:22px 20px 8px;background:radial-gradient(ellipse at 50% 0%,rgba(124,58,237,.3) 0%,transparent 60%);flex-shrink:0}
-.hd-ti{font-size:22px;font-weight:900;background:linear-gradient(110deg,#c4b5fd 0%,#818cf8 45%,#38bdf8 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:2px}
-.hd-su{color:var(--mu);font-size:11px;display:flex;align-items:center;justify-content:center;gap:6px}
-.tts-badge{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:700}
+.tts-badge{font-size:9px;padding:2px 7px;border-radius:10px;font-weight:700;flex-shrink:0}
 .tts-badge.hi{background:rgba(34,197,94,.15);color:var(--gtx)}
-.tts-badge.lo{background:rgba(167,139,250,.15);color:var(--hi)}
+.tts-badge.lo{background:rgba(139,92,246,.15);color:var(--hi)}
 /* TABS */
-.tabs{display:flex;flex-shrink:0;margin:10px 20px 0;background:var(--card);border:1px solid var(--brd);border-radius:13px;overflow:hidden;max-width:560px;align-self:center;width:calc(100% - 40px)}
+.tabs{display:flex;flex-shrink:0;margin:10px 20px 0;background:var(--card);border:1px solid var(--brd);border-radius:13px;overflow:hidden;max-width:560px;align-self:center;width:calc(100% - 40px);box-shadow:0 1px 4px rgba(109,40,217,.08)}
 .tab{flex:1;padding:11px 0;background:transparent;border:none;color:var(--mu);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;font-family:inherit}
-.tab.on{background:rgba(124,58,237,.25);color:var(--hi)}
+.tab.on{background:rgba(109,40,217,.12);color:var(--hi)}
 /* CONTENT */
 .content{flex:1;overflow-y:auto;overflow-x:hidden;padding:8px 20px 8px;display:flex;flex-direction:column;align-items:center;width:100%;box-sizing:border-box}
 .content::-webkit-scrollbar{width:3px}
-.content::-webkit-scrollbar-thumb{background:rgba(167,139,250,.3);border-radius:3px}
+.content::-webkit-scrollbar-thumb{background:rgba(109,40,217,.2);border-radius:3px}
 /* URL INPUT 영역 (스크롤 밖 고정) */
-.url-area{flex-shrink:0;padding:10px 20px 4px;width:100%;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;overflow:hidden}
-.url-row{width:100%;max-width:560px;display:flex;gap:8px;align-items:stretch;background:rgba(255,255,255,.09);border:1px solid var(--brd);border-radius:14px;padding:8px 8px 8px 14px;transition:border-color .2s,box-shadow .2s;box-sizing:border-box;min-width:0}
+.url-area{flex-shrink:0;padding:8px 20px 4px;width:100%;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;overflow:hidden}
+.url-row{width:100%;max-width:560px;display:flex;gap:8px;align-items:stretch;background:rgba(255,255,255,.8);border:1px solid var(--brd);border-radius:14px;padding:8px 8px 8px 14px;transition:border-color .2s,box-shadow .2s;box-sizing:border-box;min-width:0;box-shadow:0 1px 4px rgba(109,40,217,.08)}
 .url-row:focus-within{border-color:var(--brd2);box-shadow:0 0 0 3px rgba(124,58,237,.15)}
 #urlInput{flex:1;min-width:0;background:transparent;border:none;outline:none;color:var(--tx);font-size:14px;font-family:inherit;padding:8px 0}
 #urlInput::placeholder{color:var(--mu2);font-size:12px}
@@ -66,9 +62,9 @@ body{
 .btn:not(:disabled):active{transform:scale(.98)}
 /* QUEUE */
 .q-empty{width:100%;max-width:560px;border:1px dashed rgba(167,139,250,.2);border-radius:16px;padding:36px;text-align:center;color:var(--mu2);font-size:13px;margin-bottom:12px}
-.q-list{width:100%;max-width:560px;display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
-.q-item{background:var(--card);border:1px solid var(--brd);border-radius:16px;padding:14px 14px 12px;transition:all .3s;animation:fadeUp .22s ease-out;overflow:hidden;min-width:0;box-sizing:border-box}
-.q-item.active{background:rgba(124,58,237,.18);border-color:rgba(124,58,237,.5);box-shadow:0 0 16px rgba(124,58,237,.22)}
+.q-list{width:100%;display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
+.q-item{background:var(--card);border:1px solid var(--brd);border-radius:16px;padding:14px 14px 12px;transition:all .3s;animation:fadeUp .22s ease-out;overflow:hidden;min-width:0;box-sizing:border-box;width:100%;box-shadow:0 1px 4px rgba(109,40,217,.07)}
+.q-item.active{background:rgba(109,40,217,.08);border-color:rgba(109,40,217,.35);box-shadow:0 2px 12px rgba(109,40,217,.15)}
 .q-item.done{opacity:.45}
 .q-item.err{background:var(--red);border-color:var(--rbrd)}
 .q-main{display:flex;align-items:center;gap:10px;margin-bottom:10px;cursor:pointer;-webkit-tap-highlight-color:transparent}
@@ -148,12 +144,12 @@ body{
 /* SPINNER */
 .spin{display:inline-block;width:13px;height:13px;border-radius:50%;border:2px solid rgba(167,139,250,.2);border-top-color:var(--hi);animation:spin .8s linear infinite;vertical-align:middle}
 /* PLAYER BAR */
-.player-bar{position:fixed;bottom:0;left:0;right:0;background:rgba(13,11,30,.97);border-top:1px solid var(--brd2);padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);z-index:200}
+.player-bar{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.97);border-top:1px solid rgba(139,92,246,.2);padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);z-index:200;box-shadow:0 -2px 16px rgba(109,40,217,.1)}
 .pl-top{display:flex;align-items:center;gap:6px;margin-bottom:7px}
 .pl-title{flex:1;font-size:12px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--hi)}
 .pl-icon-btn{background:none;border:none;cursor:pointer;padding:0 2px;font-size:18px;line-height:1;transition:transform .15s;flex-shrink:0;color:var(--mu)}
 .pl-icon-btn:active{transform:scale(.82)}
-.prog-wrap{width:100%;height:5px;background:rgba(255,255,255,.1);border-radius:10px;margin-bottom:8px;overflow:hidden}
+.prog-wrap{width:100%;height:5px;background:rgba(109,40,217,.12);border-radius:10px;margin-bottom:8px;overflow:hidden}
 .prog-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--ac),var(--sky));border-radius:10px;transition:width .3s}
 /* 컨트롤 (2배 크기) */
 .ctrls{display:flex;justify-content:center;align-items:center;gap:12px;margin-bottom:8px}
@@ -174,9 +170,9 @@ body{
 .reading-strip{
   position:relative;
   font-size:13px;line-height:1.65;
-  color:rgba(240,238,252,.65);
-  background:rgba(255,255,255,.04);
-  border:1px solid rgba(167,139,250,.14);
+  color:rgba(30,27,75,.75);
+  background:rgba(109,40,217,.05);
+  border:1px solid rgba(139,92,246,.18);
   border-radius:10px;
   padding:8px 13px;
   margin-bottom:7px;
@@ -188,20 +184,20 @@ body{
   white-space:pre-wrap;
 }
 .reading-strip::-webkit-scrollbar{display:none}
-.rdhlt{background:rgba(251,191,36,.38);color:var(--gold);border-radius:4px;padding:1px 3px;font-weight:700}
+.rdhlt{background:rgba(251,191,36,.55);color:#7c2d12;border-radius:4px;padding:1px 3px;font-weight:700}
 /* 예상 읽기 시간 */
 .q-rt{font-size:10px;color:var(--mu2);flex-shrink:0;white-space:nowrap;padding:0 6px;line-height:1.4;text-align:right}
 /* 직접입력 모달 */
 .dinput-modal{position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:400;display:flex;align-items:center;justify-content:center;padding:16px;animation:fadeIn .18s}
-.dinput-inner{background:#1a1730;border:1px solid var(--brd);border-radius:20px;padding:20px;width:100%;max-width:520px;animation:fadeUp .2s}
-.dinput-inner textarea{width:100%;height:210px;background:rgba(255,255,255,.07);border:1px solid var(--brd);border-radius:10px;color:var(--tx);font-family:inherit;font-size:13px;line-height:1.6;padding:12px;resize:none;margin:10px 0;outline:none}
+.dinput-inner{background:#ffffff;border:1px solid var(--brd);border-radius:20px;padding:20px;width:100%;max-width:520px;animation:fadeUp .2s;box-shadow:0 8px 32px rgba(109,40,217,.15)}
+.dinput-inner textarea{width:100%;height:210px;background:rgba(109,40,217,.04);border:1px solid var(--brd);border-radius:10px;color:var(--tx);font-family:inherit;font-size:13px;line-height:1.6;padding:12px;resize:none;margin:10px 0;outline:none}
 .dinput-inner textarea:focus{border-color:var(--brd2)}
 .dinput-btns{display:flex;gap:8px}
 .dinput-cancel{flex:1;padding:12px;border-radius:10px;border:1px solid var(--brd);background:transparent;color:var(--mu);font-size:13px;font-weight:600;font-family:inherit;cursor:pointer}
 .dinput-ok{flex:2;padding:12px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--ac),var(--ac2));color:#fff;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer}
 /* 공유 시트 */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:300;display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .18s}
-.sheet{background:#1a1730;border:1px solid var(--brd);border-radius:20px 20px 0 0;padding:18px 18px calc(18px + env(safe-area-inset-bottom,0px));width:100%;max-width:560px;animation:slideUp .25s ease-out}
+.sheet{background:#ffffff;border:1px solid var(--brd);border-radius:20px 20px 0 0;padding:18px 18px calc(18px + env(safe-area-inset-bottom,0px));width:100%;max-width:560px;animation:slideUp .25s ease-out;box-shadow:0 -4px 24px rgba(109,40,217,.12)}
 .sheet-ttl{font-size:13px;font-weight:700;color:var(--hi);text-align:center;margin-bottom:14px}
 .share-opts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
 .sh-opt{padding:16px 0;border-radius:13px;border:none;background:var(--card);cursor:pointer;transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:5px}
@@ -219,15 +215,7 @@ body{
 </head>
 <body>
 
-<div class="hd">
-  <div class="hd-ti">기사 읽어주기 🎙</div>
-  <div class="hd-su">
-    <span>운전 중 연속 청취</span>
-    <span class="tts-badge lo" id="ttsBadge">⏳ 음성 확인 중</span>
-  </div>
-</div>
-
-<div class="tabs">
+<div class="tabs" style="margin-top:14px">
   <button class="tab on" id="tabBtnQ" onclick="switchTab('queue')">📋 재생목록</button>
   <button class="tab" id="tabBtnS" onclick="switchTab('saved')">⭐ 저장됨</button>
 </div>
@@ -251,17 +239,13 @@ body{
   </div>
 
   <!-- ═══ 재생목록 탭 ═══ -->
-  <div id="tabQueue">
+  <div id="tabQueue" style="width:100%">
     <div class="q-empty" id="qEmpty">
       <div style="font-size:38px;margin-bottom:10px">📋</div>
       URL을 추가하면 여기에 목록이 표시됩니다<br>
       <span style="font-size:11px;opacity:.55;margin-top:6px;display:block">스티비 · 네이버 블로그 · YOZM · 뉴스 등</span>
     </div>
     <div class="q-list" id="qList"></div>
-    <div id="qActions" class="dn" style="width:100%;max-width:560px">
-      <button class="btn btn-pri" id="playAllBtn" onclick="loadAndPlay(0)">▶ &nbsp;전체 불러오기 &amp; 재생</button>
-      <button class="btn btn-sec" onclick="clearAll()">🗑 &nbsp;전체 삭제</button>
-    </div>
     <div class="voice-row dn" id="voiceRow" onclick="toggleVoice()">
       <span class="voice-row-lbl">🎙 목소리 선택 (한국어/영어)</span>
       <span class="voice-sel" id="curVoiceName"></span>
@@ -284,21 +268,22 @@ body{
 <div class="player-bar">
   <div class="pl-top">
     <div class="pl-title" id="plTitle">기사를 추가하고 재생을 눌러주세요</div>
+    <span class="tts-badge lo" id="ttsBadge">⏳</span>
     <button class="pl-icon-btn" onclick="shareCurrentArticle()" title="공유">📤</button>
   </div>
   <div class="reading-strip dn" id="readingStrip"></div>
   <div class="prog-wrap"><div class="prog-fill" id="progFill"></div></div>
   <div class="ctrls">
+    <button class="cb xs skip" onclick="clearAll()" title="전체삭제" style="color:var(--rtx);border-color:var(--rbrd)">🗑</button>
     <button class="cb xs skip" onclick="skipFwd(-10)" title="-10초">-10s</button>
-    <button class="cb sm" onclick="stopAll()">⏹</button>
     <button class="cb lg" id="playBtn" onclick="togglePlay()">▶</button>
-    <button class="cb sm" onclick="skipFwd(10)" title="+10초">+10s</button>
-    <button class="cb xs" onclick="restartCur()">🔄</button>
+    <button class="cb xs skip" onclick="skipFwd(10)" title="+10초">+10s</button>
+    <button class="cb sm" onclick="stopAll()">⏹</button>
   </div>
   <div class="spd-row">
     <span class="spd-lbl">🐢 배속</span>
     <input type="range" id="spdSlider" class="spd-sl"
-      min="0.8" max="2.0" step="0.1" value="1.0"
+      min="1.0" max="2.5" step="0.1" value="1.0"
       oninput="setSpd(parseFloat(this.value))">
     <span class="spd-val" id="spdVal">1.0x</span>
   </div>
@@ -567,7 +552,7 @@ TTS._onDone = () => {
   }
   if(speechSynthesis){ loadVoices(); speechSynthesis.onvoiceschanged=loadVoices; }
 
-  try{ const s=parseFloat(localStorage.getItem(LS_SPD)); if(!isNaN(s)) spd=Math.max(0.8,Math.min(2.0,s)); TTS._rate=spd; }catch(_){}
+  try{ const s=parseFloat(localStorage.getItem(LS_SPD)); if(!isNaN(s)) spd=Math.max(1.0,Math.min(2.5,s)); TTS._rate=spd; }catch(_){}
   // slider 초기값 설정은 DOM 준비 후 실행
   setTimeout(()=>highlightSpd(), 0);
   try{
@@ -815,9 +800,7 @@ function clearAll(){ stopAll(); Q=[]; curIdx=-1; openSites.clear(); renderQ(); s
 
 function renderQ(){
   const empty=Q.length===0;
-  // style.display 대신 classList로 제어 (display:none!important 충돌 방지)
   empty ? $('qEmpty').classList.remove('dn') : $('qEmpty').classList.add('dn');
-  empty ? $('qActions').classList.add('dn') : $('qActions').classList.remove('dn');
   $('qList').innerHTML=Q.map((q,i)=>{
     const active=(i===curIdx&&isOn);
     const saved=SAVED.some(s=>s.url===q.url);
@@ -826,7 +809,7 @@ function renderQ(){
     const stHtml=q.status==='loading'?'<span class="spin"></span>':`<span class="q-st">${SI[q.status]||'⬜'}</span>`;
     const subLine=q.status==='error'?`<div class="q-sub err-t">${esc(q.err.slice(0,60))}</div>`:
                   q.status==='loading'?'<div class="q-sub info">불러오는 중...</div>':'';
-    const rt = q.content ? estimateReadTime(q.content) : '';
+    const rtChars = q.content ? q.content.length : 0;
     return `<div class="${cls}" id="qitem-${q.id}">
       <div class="q-main" onclick="playOrLoadItem(${i})" title="탭하여 재생">
         <div class="q-badge">${active?'♪':(i+1)}</div>
@@ -835,7 +818,7 @@ function renderQ(){
           ${subLine}
           <div class="q-url">${q.url.slice(0,50)}</div>
         </div>
-        ${rt?`<span class="q-rt">⏱${rt}</span>`:''}
+        ${rtChars>30?`<span class="q-rt" data-rt-chars="${rtChars}">⏱${calcReadTime(rtChars,spd)}</span>`:''}
         ${stHtml}
       </div>
       <div class="q-acts">
@@ -917,8 +900,7 @@ function playOrLoadItem(idx){
    LOAD & PLAY
 ══════════════════════ */
 async function loadAndPlay(startIdx){
-  const btn=$('playAllBtn');
-  btn.disabled=true; btn.textContent='⏳ 불러오는 중...'; hideErr();
+  hideErr();
   for(let i=startIdx;i<Q.length;i++){
     if(Q[i].status!=='pending') continue;
     Q[i].status='loading'; renderQ();
@@ -928,7 +910,6 @@ async function loadAndPlay(startIdx){
     }catch(e){ Q[i].status='error'; Q[i].err=e.message; }
     renderQ(); saveQ();
   }
-  btn.disabled=false; btn.textContent='▶ 전체 불러오기 & 재생';
   const first=Q.findIndex((q,i)=>i>=startIdx&&q.status==='ready');
   if(first!==-1) playAt(first,true);
   else showErr('불러올 수 있는 기사가 없습니다.\n차단됐거나 로그인이 필요한 사이트일 수 있습니다.');
@@ -1152,15 +1133,16 @@ function updateReadingText(chunk, pos, wordLen){
   }
 }
 
-function estimateReadTime(content){
-  if(!content || content.length < 30) return '';
-  const seconds = Math.round(content.length / 200 * 60);
+function calcReadTime(chars, rate){
+  if(!chars || chars < 30) return '';
+  const seconds = Math.round(chars / 200 * 60 / (rate || 1));
   const mins = Math.floor(seconds / 60);
   const secs = seconds % 60;
   if(mins === 0) return `~${secs}초`;
   if(secs === 0) return `~${mins}분`;
   return `~${mins}분 ${secs < 10 ? '0'+secs : secs}초`;
 }
+function estimateReadTime(content){ return calcReadTime(content ? content.length : 0, spd); }
 
 function setSpd(v){
   spd = parseFloat(parseFloat(v).toFixed(1));
@@ -1169,6 +1151,11 @@ function setSpd(v){
   if(valEl) valEl.textContent = spd.toFixed(1)+'x';
   updateSliderTrack();
   try{ localStorage.setItem(LS_SPD,String(spd)); }catch(_){}
+  // 배속 변경 시 읽기 시간 즉시 업데이트
+  document.querySelectorAll('[data-rt-chars]').forEach(el=>{
+    const c=parseInt(el.dataset.rtChars);
+    if(c>30) el.textContent='⏱'+calcReadTime(c,spd);
+  });
 }
 function highlightSpd(){
   const sl = document.getElementById('spdSlider');
@@ -1180,9 +1167,9 @@ function highlightSpd(){
 function updateSliderTrack(){
   const sl = document.getElementById('spdSlider');
   if(!sl) return;
-  const min=0.8, max=2.0;
+  const min=1.0, max=2.5;
   const pct = (spd - min) / (max - min) * 100;
-  sl.style.background = `linear-gradient(to right,var(--ac) ${pct}%,rgba(255,255,255,.15) ${pct}%)`;
+  sl.style.background = `linear-gradient(to right,var(--ac) ${pct}%,rgba(109,40,217,.15) ${pct}%)`;
 }
 
 /* ══════════════════════
