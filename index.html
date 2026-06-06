@@ -351,7 +351,7 @@ const TTS = {
   _chunks: [], _idx: 0, _offset: 0, _totalLen: 0,
   _playing: false, _paused: false, _audio: null,
   _onProgress: null, _onDone: null, _onChunkStart: null,
-  _rate: 1.0, _lang: 'ko', _gen: 0,
+  _rate: 1.0, _lang: 'ko', _gen: 0, _prefetch: null,
 
   // /api/tts 가용 여부 확인
   async checkAvail(){
@@ -432,8 +432,15 @@ const TTS = {
     if(this._onChunkStart) this._onChunkStart(txt);
 
     if(this.useAudio){
-      const blob = await this._fetchAudio(txt);
-      if(this._gen !== myGen) return; // 스킵/정지로 무효화된 fetch
+      let blob = null;
+      if(this._prefetch && this._prefetch.txt === txt && this._prefetch.gen === myGen && this._prefetch.blob){
+        blob = this._prefetch.blob;
+        this._prefetch = null;
+      } else {
+        this._prefetch = null;
+        blob = await this._fetchAudio(txt);
+        if(this._gen !== myGen) return;
+      }
       if(blob){ this._playBlob(blob, txt); return; }
       this.useAudio = false; this._updateBadge();
     }
@@ -457,6 +464,7 @@ const TTS = {
     const a = new Audio(url);
     a.playbackRate = this._rate;
     this._audio = a;
+    const myGen = this._gen;
     a.ontimeupdate = ()=>{
       if(!a.duration) return;
       const ratio    = a.currentTime / a.duration;
@@ -464,6 +472,19 @@ const TTS = {
       const absChar  = this._offset + chunkPos;
       const pct      = Math.min(99, absChar / this._totalLen * 100);
       if(this._onProgress) this._onProgress(pct, absChar, txt, chunkPos, 0);
+      // 60% 지점에서 다음 청크 미리 가져오기
+      if(ratio > 0.6 && !this._prefetch){
+        const nextTxt = this._chunks[this._idx + 1];
+        if(nextTxt){
+          const pGen = this._gen;
+          this._prefetch = { txt: nextTxt, gen: pGen, blob: null };
+          this._fetchAudio(nextTxt).then(b => {
+            if(this._prefetch && this._prefetch.txt === nextTxt && this._prefetch.gen === pGen){
+              this._prefetch.blob = b;
+            }
+          });
+        }
+      }
     };
     a.onended = ()=>{
       URL.revokeObjectURL(url);
@@ -513,7 +534,7 @@ const TTS = {
     this._playing=false; this._paused=false;
     if(this._audio){ try{this._audio.pause();}catch(_){} this._audio=null; }
     try{ if(speechSynthesis) speechSynthesis.cancel(); }catch(_){}
-    this._chunks=[]; this._idx=0; this._offset=0;
+    this._chunks=[]; this._idx=0; this._offset=0; this._prefetch=null;
   },
   setRate(v){
     this._rate=v;
