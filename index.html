@@ -149,7 +149,8 @@ body{
 .pl-title{flex:1;font-size:12px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--hi)}
 .pl-icon-btn{background:none;border:none;cursor:pointer;padding:0 2px;font-size:18px;line-height:1;transition:transform .15s;flex-shrink:0;color:var(--mu)}
 .pl-icon-btn:active{transform:scale(.82)}
-.prog-wrap{width:100%;height:5px;background:rgba(109,40,217,.12);border-radius:10px;margin-bottom:8px;overflow:hidden}
+.prog-wrap{width:100%;height:5px;background:rgba(109,40,217,.12);border-radius:10px;margin-bottom:3px;overflow:hidden}
+.pl-time{font-size:10px;color:var(--mu);text-align:right;margin-bottom:6px;min-height:14px;letter-spacing:.2px}
 .prog-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--ac),var(--sky));border-radius:10px;transition:width .3s}
 /* 컨트롤 (2배 크기) */
 .ctrls{display:flex;justify-content:center;align-items:center;gap:12px;margin-bottom:8px}
@@ -273,6 +274,7 @@ body{
   </div>
   <div class="reading-strip dn" id="readingStrip"></div>
   <div class="prog-wrap"><div class="prog-fill" id="progFill"></div></div>
+  <div id="plTime" class="pl-time"></div>
   <div class="ctrls">
     <button class="cb xs skip" onclick="clearAll()" title="전체삭제" style="color:var(--rtx);border-color:var(--rbrd)">🗑</button>
     <button class="cb xs skip" onclick="skipFwd(-10)" title="-10초">-10s</button>
@@ -328,6 +330,7 @@ body{
 let Q = [], SAVED = [];
 let curIdx = -1, isOn = false, isPaused = false, wasInterrupted = false;
 let spd = 1.0, selVoice = null, allVoices = [];
+let plTotalSecs = 0;
 let wakeLock = null, uid = 0;
 let activeTab = 'queue', voiceOpen = false;
 let shareTarget = null;
@@ -520,8 +523,22 @@ const TTS = {
 
 TTS._onProgress = (pct, absChar, chunk, chunkPos, wordLen) => {
   setProg(pct);
+  updatePlTime(pct);
   if(chunk) updateReadingText(chunk, chunkPos, wordLen);
 };
+
+function fmtSec(s){
+  s = Math.max(0, Math.round(s));
+  const m = Math.floor(s / 60), ss = s % 60;
+  return `${m}:${ss < 10 ? '0'+ss : ss}`;
+}
+function updatePlTime(pct){
+  const el = document.getElementById('plTime');
+  if(!el) return;
+  if(!plTotalSecs){ el.textContent = ''; return; }
+  const remaining = plTotalSecs * (1 - pct / 100);
+  el.textContent = `남은 ${fmtSec(remaining)}  /  전체 ${fmtSec(plTotalSecs)}`;
+}
 TTS._onChunkStart = (chunk) => {
   updateReadingText(chunk, 0, 0);
 };
@@ -926,18 +943,25 @@ function playAt(idx, autoNext){
   curIdx=idx; isOn=true; isPaused=false;
   $('plTitle').textContent=q.title;
   setProg(0);
+  // 전체 재생 시간 계산
+  plTotalSecs = Math.round((q.title.length + 2 + q.content.length) / 200 * 60 / spd);
+  updatePlTime(0);
   const _rs=document.getElementById('readingStrip');
   if(_rs){ _rs.innerHTML='<span style="opacity:.4">⏳ 읽는 중…</span>'; _rs.classList.remove('dn'); }
   renderQ();
   requestWakeLock();
   TTS._onDone = ()=>{
-    isOn=false; isPaused=false; setProg(100); updPlayBtn();
+    isOn=false; isPaused=false; plTotalSecs=0;
+    setProg(100); updatePlTime(100); updPlayBtn();
     if(curIdx>=0){ Q[curIdx].status='done'; renderQ(); saveQ(); }
     releaseWakeLock();
     if(!autoNext) return;
-    const ni=Q.findIndex((q,i)=>i>idx&&q.status==='ready');
-    if(ni!==-1){ showToast(`✅ 다음: ${Q[ni].title.slice(0,18)}`); setTimeout(()=>playAt(ni,true),800); }
-    else showToast('🎉 모든 기사 읽기 완료!');
+    // ready → 바로 재생, pending → 로드 후 재생, 둘 다 없으면 완료
+    const ni=Q.findIndex((q,i)=>i>idx&&(q.status==='ready'||q.status==='pending'));
+    if(ni!==-1){
+      showToast(`✅ 다음: ${Q[ni].title.slice(0,18)}`);
+      setTimeout(()=>{ Q[ni].status==='ready' ? playAt(ni,true) : loadAndPlay(ni); }, 800);
+    } else showToast('🎉 모든 기사 읽기 완료!');
   };
   const lang = detectLang(q.content);
   TTS.start(q.title+'. '+q.content, lang);
@@ -964,6 +988,7 @@ function togglePlay(){
 }
 function stopAll(){
   TTS.stop(); isOn=false; isPaused=false; wasInterrupted=false;
+  plTotalSecs=0; updatePlTime(0);
   setProg(0); updPlayBtn(); renderQ(); releaseWakeLock();
   const _rs=document.getElementById('readingStrip'); if(_rs) _rs.classList.add('dn');
 }
@@ -1161,6 +1186,13 @@ function setSpd(v){
     const c=parseInt(el.dataset.rtChars);
     if(c>30) el.textContent='⏱'+calcReadTime(c,spd);
   });
+  // 현재 재생 중이면 플레이어 전체 시간 재계산
+  if(isOn && curIdx>=0 && Q[curIdx]?.content){
+    const q=Q[curIdx];
+    plTotalSecs = Math.round((q.title.length + 2 + q.content.length) / 200 * 60 / spd);
+    const pct = parseFloat(document.getElementById('progFill')?.style.width)||0;
+    updatePlTime(pct);
+  }
 }
 function highlightSpd(){
   const sl = document.getElementById('spdSlider');
