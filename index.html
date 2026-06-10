@@ -120,6 +120,8 @@ body{
 .vbadge.g{background:rgba(34,197,94,.15);color:#86efac}
 .vbadge.f{background:rgba(236,72,153,.2);color:#f9a8d4}
 .vbadge.k{background:rgba(59,130,246,.15);color:#93c5fd}
+.vgroup-title{font-size:10px;font-weight:700;color:var(--mu2);letter-spacing:.04em;padding:8px 6px 4px;text-transform:uppercase}
+.vgroup-title:first-child{padding-top:2px}
 /* SAVED */
 .sv-empty{width:100%;max-width:560px;border:1px dashed rgba(167,139,250,.2);border-radius:16px;padding:36px;text-align:center;color:var(--mu2);font-size:13px}
 .sv-list{width:100%;max-width:560px;display:flex;flex-direction:column;gap:8px;margin-top:2px}
@@ -248,7 +250,7 @@ body{
     </div>
     <div class="q-list" id="qList"></div>
     <div class="voice-row dn" id="voiceRow" onclick="toggleVoice()">
-      <span class="voice-row-lbl">🎙 목소리 선택 (한국어/영어)</span>
+      <span class="voice-row-lbl">🎙 목소리 선택</span>
       <span class="voice-sel" id="curVoiceName"></span>
       <span id="voiceArrow" style="color:var(--mu);font-size:11px">▼</span>
     </div>
@@ -338,7 +340,8 @@ let openSites = new Set(); // 펼쳐진 사이트 iframe ID 목록
 
 const LS_Q = 'arq_v3', LS_SAVED = 'arq_saved_v1', LS_SPD = 'arq_spd';
 const GOOGLE_KW = ['google 한국','google korean'];
-const FEMALE_KW = ['yuna','유나','heami','혜미','sunhi','선희','sora','소라','female','여성','nari','나리'];
+const FEMALE_KW = ['yuna','유나','heami','혜미','sunhi','선희','sora','소라','female','여성','nari','나리','jimin','지민','seohyeon','서현','yujin','유진','soonbok','순복','kyuri','규리'];
+const MULTI_KW  = ['multilingual','다국어'];
 const SI = {pending:'⬜',loading:'',ready:'✅',done:'🔵',error:'❌'};
 
 /* ══════════════════════
@@ -643,10 +646,17 @@ function toggleVoice(){
   voiceOpen?show('vPanel'):hide('vPanel');
 }
 function renderVoices(){
-  // 한국어, 영어만 표시
-  const list = allVoices.filter(v=>v.lang?.startsWith('ko')||v.lang?.startsWith('en')).slice(0,24);
+  // 한국어 / 영어 / 한국어-영어 공용 카테고리로 분류
+  const list = allVoices.filter(v=>v.lang?.startsWith('ko')||v.lang?.startsWith('en')).slice(0,30);
   if(list.length<2){ hide('voiceRow'); return; }
-  $('vList').innerHTML=list.map(v=>{
+  const groups = { '한국어-영어 공용':[], '한국어':[], '영어':[] };
+  list.forEach(v=>{
+    const name = v.name.toLowerCase();
+    if(MULTI_KW.some(k=>name.includes(k))) groups['한국어-영어 공용'].push(v);
+    else if(v.lang?.startsWith('ko')) groups['한국어'].push(v);
+    else groups['영어'].push(v);
+  });
+  const renderBtn = v=>{
     const isGoo=GOOGLE_KW.some(k=>v.name.toLowerCase().includes(k));
     const isFem=FEMALE_KW.some(k=>v.name.toLowerCase().includes(k));
     const isKo=v.lang?.startsWith('ko');
@@ -655,7 +665,12 @@ function renderVoices(){
     return `<button class="vb${on?' on':''}" onclick="pickVoice('${v.name.replace(/'/g,"\\'")}')">
       <span style="flex:1">${on?'✓ ':''}${v.name}<span style="opacity:.3;font-size:9px;margin-left:4px">${v.lang}</span></span>${badge}
     </button>`;
-  }).join('');
+  };
+  // 공용 목소리가 없으면 한국어/영어 카테고리만 표시
+  $('vList').innerHTML = Object.entries(groups)
+    .filter(([,vs])=>vs.length)
+    .map(([label,vs])=>`<div class="vgroup-title">${label}</div>${vs.map(renderBtn).join('')}`)
+    .join('');
 }
 function pickVoice(name){
   selVoice=allVoices.find(v=>v.name===name)||selVoice;
