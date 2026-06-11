@@ -791,7 +791,10 @@ function parseHtml(html, url){
   // 사이트별 특화
   let specific=null;
   if(url.includes('stibee.com')){
-    specific=doc.querySelector('.stibee-email,.email-body,.body-section,table');
+    // querySelector('a,b,c')는 DOM 순서상 먼저 나오는 요소를 반환하므로
+    // 우선순위대로 개별 조회 (table이 본문보다 먼저 나오는 레이아웃 대비)
+    specific=doc.querySelector('.stibee-email')||doc.querySelector('.email-body')||
+             doc.querySelector('.body-section')||doc.querySelector('table');
   } else if(url.includes('yozm.wishket.com')){
     specific=doc.querySelector('[class*="post_content"],[class*="article_body"],[class*="detail__content"],[class*="magazine-content"],article,.post-content');
   } else if(url.includes('naver.com')){
@@ -824,8 +827,12 @@ function parseHtml(html, url){
   if(!best) best=doc.body;
 
   let text='';
-  const paras=best.querySelectorAll('p,h2,h3,h4,li,.se-text-paragraph,[class*="paragraph"]');
-  if(paras.length>=3) text=Array.from(paras).map(p=>p.textContent.trim()).filter(t=>t.length>15).join('\n');
+  // p/div/td 등 블록 요소 중 다른 블록 요소를 포함하지 않는 "최하위" 요소만 모아
+  // 줄 단위로 추출 (p 태그만 모으면 div/td에 직접 들어간 텍스트가 통째로 누락됨)
+  const blockSel='p,h1,h2,h3,h4,h5,h6,li,div,td,blockquote,.se-text-paragraph,[class*="paragraph"]';
+  let blocks=Array.from(best.querySelectorAll(blockSel));
+  blocks=blocks.filter(el=>!blocks.some(other=>other!==el&&el.contains(other)));
+  text=blocks.map(el=>el.textContent.replace(/\s+/g,' ').trim()).filter(t=>t.length>0).join('\n');
   if(text.length<300) text=best.textContent||'';
 
   text=text.replace(/[​-‍﻿]/g,'').replace(/[ \t]+/g,' ').replace(/\n{3,}/g,'\n\n').trim();

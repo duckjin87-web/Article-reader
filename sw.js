@@ -1,4 +1,4 @@
-const CACHE = 'article-reader-v6';
+const CACHE = 'article-reader-v7';
 const SHELL = ['./index.html', './manifest.json'];
 
 self.addEventListener('install', e => {
