@@ -331,14 +331,14 @@ body{
 ══════════════════════ */
 let Q = [], SAVED = [];
 let curIdx = -1, isOn = false, isPaused = false, wasInterrupted = false;
-let spd = 1.0, selVoice = null, allVoices = [];
+let spd = 1.0, selVoice = null, allVoices = [], savedVoiceName = null;
 let plTotalSecs = 0;
 let wakeLock = null, uid = 0;
 let activeTab = 'queue', voiceOpen = false;
 let shareTarget = null;
 let openSites = new Set(); // 펼쳐진 사이트 iframe ID 목록
 
-const LS_Q = 'arq_v3', LS_SAVED = 'arq_saved_v1', LS_SPD = 'arq_spd';
+const LS_Q = 'arq_v3', LS_SAVED = 'arq_saved_v1', LS_SPD = 'arq_spd', LS_VOICE = 'arq_voice';
 const GOOGLE_KW = ['google 한국','google korean'];
 const FEMALE_KW = ['yuna','유나','heami','혜미','sunhi','선희','sora','소라','female','여성','nari','나리','jimin','지민','seohyeon','서현','yujin','유진','soonbok','순복','kyuri','규리'];
 const MULTI_KW  = ['multilingual','다국어'];
@@ -355,6 +355,7 @@ const TTS = {
   _playing: false, _paused: false, _audio: null,
   _onProgress: null, _onDone: null, _onChunkStart: null,
   _rate: 1.0, _lang: 'ko', _gen: 0, _prefetch: null,
+  preferAudio: true, _failCount: 0,
 
   // /api/tts 가용 여부 확인
   async checkAvail(){
@@ -371,12 +372,15 @@ const TTS = {
 
   _updateBadge(){
     const el = document.getElementById('ttsBadge');
-    if(!el) return;
-    if(this.useAudio){
-      el.className='tts-badge hi'; el.textContent='🎵 Google TTS';
-    } else {
-      el.className='tts-badge lo'; el.textContent='🔊 기기 음성';
+    if(el){
+      if(this.useAudio && this.preferAudio){
+        el.className='tts-badge hi'; el.textContent='🎵 Google TTS';
+      } else {
+        el.className='tts-badge lo'; el.textContent='🔊 기기 음성';
+      }
     }
+    renderVoices();
+    updateVoiceLabel();
   },
 
   // 텍스트를 ~180자 단위로 청크 분할 (문장 경계 우선)
@@ -411,10 +415,14 @@ const TTS = {
     return result.filter(s=>s.length>0);
   },
 
+  // 현재 음성 엔진이 기기 음성(Web Speech)인지 여부
+  _usingDevice(){ return !(this.useAudio && this.preferAudio); },
+
   async start(text, lang){
     this._gen++;
     this.stop();
     await this.checkAvail();
+    this._failCount = 0;
     this._chunks = this._split(text);
     this._idx = 0; this._offset = 0;
     this._totalLen = text.length || 1;
@@ -434,7 +442,7 @@ const TTS = {
     const txt = this._chunks[this._idx];
     if(this._onChunkStart) this._onChunkStart(txt);
 
-    if(this.useAudio){
+    if(this.useAudio && this.preferAudio){
       let blob = null;
       if(this._prefetch && this._prefetch.txt === txt && this._prefetch.gen === myGen && this._prefetch.blob){
         blob = this._prefetch.blob;
@@ -444,8 +452,17 @@ const TTS = {
         blob = await this._fetchAudio(txt);
         if(this._gen !== myGen) return;
       }
-      if(blob){ this._playBlob(blob, txt); return; }
-      this.useAudio = false; this._updateBadge();
+      if(blob){
+        this._failCount = 0;
+        this._playBlob(blob, txt); return;
+      }
+      // 일시적 오류일 수 있으므로 이번 청크만 기기 음성으로 대체.
+      // 연속으로 실패하면 Google TTS를 완전히 포기하고 알림
+      this._failCount++;
+      if(this._failCount >= 2){
+        this.useAudio = false; this._updateBadge();
+        if(this._onFallback) this._onFallback();
+      }
     }
     if(this._gen !== myGen) return;
     this._playSpeech(txt);
@@ -566,6 +583,9 @@ function updatePlTime(pct){
 TTS._onChunkStart = (chunk) => {
   updateReadingText(chunk, 0, 0);
 };
+TTS._onFallback = () => {
+  showToast('🔊 Google TTS 응답 없음 → 기기 음성으로 전환');
+};
 TTS._onDone = () => {
   isOn=false; isPaused=false; setProg(100); updPlayBtn();
   if(curIdx>=0){ Q[curIdx].status='done'; renderQ(); saveQ(); }
@@ -587,10 +607,22 @@ TTS._onDone = () => {
     const all = speechSynthesis?.getVoices() || [];
     if(!all.length) return;
     allVoices = all;
+    if(savedVoiceName){
+      const found = all.find(v=>v.name===savedVoiceName);
+      if(found){ selVoice = found; savedVoiceName = null; }
+    }
     if(!selVoice) selVoice = selectBestVoice(all);
     renderVoices();
-    if(all.length>1){ $('curVoiceName').textContent=selVoice?.name||''; show('voiceRow'); }
+    updateVoiceLabel();
   }
+  try{
+    const raw = localStorage.getItem(LS_VOICE);
+    if(raw){
+      const v = JSON.parse(raw);
+      if(typeof v.preferAudio === 'boolean') TTS.preferAudio = v.preferAudio;
+      if(v.voiceName) savedVoiceName = v.voiceName;
+    }
+  }catch(_){}
   if(speechSynthesis){ loadVoices(); speechSynthesis.onvoiceschanged=loadVoices; }
 
   try{ const s=parseFloat(localStorage.getItem(LS_SPD)); if(!isNaN(s)) spd=Math.max(1.0,Math.min(2.5,s)); TTS._rate=spd; }catch(_){}
@@ -648,7 +680,8 @@ function toggleVoice(){
 function renderVoices(){
   // 한국어 / 영어 / 한국어-영어 공용 카테고리로 분류
   const list = allVoices.filter(v=>v.lang?.startsWith('ko')||v.lang?.startsWith('en')).slice(0,30);
-  if(list.length<2){ hide('voiceRow'); return; }
+  if(list.length===0 || (list.length<2 && !TTS.useAudio)){ hide('voiceRow'); return; }
+  show('voiceRow');
   const groups = { '한국어-영어 공용':[], '한국어':[], '영어':[] };
   list.forEach(v=>{
     const name = v.name.toLowerCase();
@@ -661,20 +694,42 @@ function renderVoices(){
     const isFem=FEMALE_KW.some(k=>v.name.toLowerCase().includes(k));
     const isKo=v.lang?.startsWith('ko');
     const badge=isGoo?'<span class="vbadge g">Google</span>':isFem?'<span class="vbadge f">여성</span>':isKo?'<span class="vbadge k">한국어</span>':'';
-    const on=selVoice?.name===v.name;
+    const on=!TTS.preferAudio && selVoice?.name===v.name;
     return `<button class="vb${on?' on':''}" onclick="pickVoice('${v.name.replace(/'/g,"\\'")}')">
       <span style="flex:1">${on?'✓ ':''}${v.name}<span style="opacity:.3;font-size:9px;margin-left:4px">${v.lang}</span></span>${badge}
     </button>`;
   };
+  let html='';
+  if(TTS.useAudio){
+    const on=TTS.preferAudio;
+    html += `<div class="vgroup-title">자동</div>`;
+    html += `<button class="vb${on?' on':''}" onclick="pickVoice('__google__')">
+      <span style="flex:1">${on?'✓ ':''}Google TTS (자동, 추천)</span><span class="vbadge g">Google</span>
+    </button>`;
+  }
   // 공용 목소리가 없으면 한국어/영어 카테고리만 표시
-  $('vList').innerHTML = Object.entries(groups)
+  html += Object.entries(groups)
     .filter(([,vs])=>vs.length)
     .map(([label,vs])=>`<div class="vgroup-title">${label}</div>${vs.map(renderBtn).join('')}`)
     .join('');
+  $('vList').innerHTML = html;
+}
+function updateVoiceLabel(){
+  const el=$('curVoiceName'); if(!el) return;
+  el.textContent = (TTS.useAudio && TTS.preferAudio) ? '🎵 Google TTS (자동)' : (selVoice?.name||'');
+}
+function saveVoicePref(){
+  try{ localStorage.setItem(LS_VOICE, JSON.stringify({preferAudio:TTS.preferAudio, voiceName:selVoice?.name||null})); }catch(_){}
 }
 function pickVoice(name){
-  selVoice=allVoices.find(v=>v.name===name)||selVoice;
-  $('curVoiceName').textContent=selVoice?.name||'';
+  if(name==='__google__'){
+    TTS.preferAudio=true;
+  } else {
+    selVoice=allVoices.find(v=>v.name===name)||selVoice;
+    TTS.preferAudio=false;
+  }
+  saveVoicePref();
+  updateVoiceLabel();
   renderVoices();
   if(isOn) restartCur();
 }
@@ -1264,7 +1319,7 @@ function releaseWakeLock(){
 document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState==='hidden'){
     // Web Speech API는 화면 꺼짐 시 강제 중단됨 → 재개 안내 플래그 설정
-    if(isOn && !isPaused && TTS.useAudio===false){
+    if(isOn && !isPaused && TTS._usingDevice()){
       wasInterrupted = true;
       isPaused = true;
       TTS._paused = true;
