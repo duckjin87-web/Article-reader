@@ -570,6 +570,17 @@ TTS._onDone = () => {
   $('urlInput').addEventListener('keydown',e=>{ if(e.key==='Enter') addUrl(); });
   if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
 
+  // Web Share Target: 다른 앱/브라우저에서 URL 공유받으면 자동 추가
+  try{
+    const sp = new URLSearchParams(location.search);
+    const shared = sp.get('url') || sp.get('text') || '';
+    if(shared.startsWith('http')){
+      history.replaceState(null,'',location.pathname); // URL 파라미터 제거
+      $('urlInput').value = shared;
+      setTimeout(()=>{ addUrl(); showToast('📎 공유된 기사가 추가되었습니다!'); }, 400);
+    }
+  }catch(_){}
+
   // TTS 가용성 확인 (비동기)
   TTS.checkAvail();
 })();
