@@ -124,6 +124,7 @@ body{
 .vbadge.g{background:rgba(34,197,94,.15);color:#86efac}
 .vbadge.f{background:rgba(236,72,153,.2);color:#f9a8d4}
 .vbadge.k{background:rgba(59,130,246,.15);color:#93c5fd}
+.v-section{font-size:10px;font-weight:700;color:var(--mu2);padding:6px 4px 2px;letter-spacing:.04em;text-transform:uppercase}
 /* SAVED */
 .sv-empty{width:100%;max-width:560px;border:1px dashed rgba(167,139,250,.2);border-radius:16px;padding:36px;text-align:center;color:var(--mu2);font-size:13px}
 .sv-list{width:100%;max-width:560px;display:flex;flex-direction:column;gap:8px;margin-top:2px}
@@ -351,44 +352,76 @@ const SI = {pending:'⬜',loading:'',ready:'✅',done:'🔵',error:'❌'};
 
 /* ══════════════════════
    TTS MANAGER
-   (Google TTS via /api/tts → 자연스러운 한국어
-    Fallback: Web Speech API)
+   우선순위: Azure/OpenAI (서버 환경변수 설정 시) → Google TTS → 기기 Web Speech
+   - 2-chunk 선행 다운로드로 청크 전환 시 끊김 제거
+   - 연속 2회 실패해야 기기 음성으로 전환 (일시적 네트워크 오류 허용)
+   - _gen 카운터로 기사 전환 시 이전 fetch 무시
 ══════════════════════ */
+const AZURE_VOICES_KO = [
+  {name:'ko-KR-SunHiNeural',   label:'선희 (여성 · 자연스러운, 추천)', f:true},
+  {name:'ko-KR-JiMinNeural',   label:'지민 (여성 · 밝은)', f:true},
+  {name:'ko-KR-SeoHyeonNeural',label:'서현 (여성 · 부드러운)', f:true},
+  {name:'ko-KR-YuJinNeural',   label:'유진 (여성 · 따뜻한)', f:true},
+  {name:'ko-KR-InJoonNeural',  label:'인준 (남성 · 뉴스)', f:false},
+  {name:'ko-KR-BongJinNeural', label:'봉진 (남성 · 안정적)', f:false},
+  {name:'ko-KR-HyunsuMultilingualNeural', label:'현수 (남성 · 한/영 공용)', f:false},
+];
+const OPENAI_VOICES = [
+  {name:'nova',    label:'Nova (여성 · 한국어 추천)', f:true},
+  {name:'shimmer', label:'Shimmer (여성 · 밝은)', f:true},
+  {name:'alloy',   label:'Alloy (중성 · 차분한)', f:false},
+  {name:'echo',    label:'Echo (남성)', f:false},
+  {name:'fable',   label:'Fable (남성 · 영국식)', f:false},
+  {name:'onyx',    label:'Onyx (남성 · 중후한)', f:false},
+];
+const LS_VOICE = 'arq_voice';
+
 const TTS = {
-  useAudio: null,  // null=미확인, true=Google, false=WebSpeech
+  useAudio: null,   // null=미확인, true=서버TTS, false=WebSpeech
+  preferAudio: true, // 사용자가 기기음성 선택 시 false
   _chunks: [], _idx: 0, _offset: 0, _totalLen: 0,
   _playing: false, _paused: false, _audio: null,
-  _onProgress: null, _onDone: null, _onChunkStart: null,
+  _onProgress: null, _onDone: null, _onChunkStart: null, _onFallback: null,
   _rate: 1.0, _lang: 'ko',
+  _gen: 0,         // 기사 전환 시 증가 → 이전 세대 fetch 무시
+  _prefetch: null, // {txt, gen, blob}
+  _prefetch2: null,
+  _failCount: 0,   // 연속 실패 횟수 (2회 이상이면 기기 음성 전환)
+  _backend: null,  // 'azure'|'openai'|'google'|null
+  _voice: null,    // 서버에 전송할 voice 파라미터
 
-  // /api/tts 가용 여부 확인
+  _usingDevice(){ return !(this.useAudio && this.preferAudio); },
+
+  // /api/tts 가용 여부 + 백엔드 확인
   async checkAvail(){
     if(this.useAudio !== null) return;
     try{
-      const ctrl = new AbortController();
-      const tid = setTimeout(()=>ctrl.abort(), 6000);
-      const r = await fetch('/api/tts?text=%ED%85%8C%EC%8A%A4%ED%8A%B8&lang=ko', {signal:ctrl.signal});
-      clearTimeout(tid);
+      const r = await fetch('/api/tts?text=%ED%85%8C%EC%8A%A4%ED%8A%B8&lang=ko',
+        {signal: AbortSignal.timeout(6000)});
       this.useAudio = r.ok && r.headers.get('content-type')?.includes('audio');
+      if(this.useAudio) this._backend = r.headers.get('X-TTS-Backend') || 'google';
     }catch(_){ this.useAudio = false; }
     this._updateBadge();
+    renderVoices(); // 백엔드 확인 후 음성 목록 갱신
   },
 
   _updateBadge(){
     const el = document.getElementById('ttsBadge');
     if(!el) return;
-    if(this.useAudio){
-      el.className='tts-badge hi'; el.textContent='🎵 Google TTS';
+    if(this.useAudio && this.preferAudio){
+      const lbl = this._backend==='azure' ? '☁️ Azure TTS'
+                : this._backend==='openai' ? '🤖 OpenAI TTS'
+                : '🎵 Google TTS';
+      el.className='tts-badge hi'; el.textContent=lbl;
     } else {
       el.className='tts-badge lo'; el.textContent='🔊 기기 음성';
     }
   },
 
-  // 텍스트를 ~180자 단위로 청크 분할 (문장 경계 우선)
+  // 청크 분할 — 프리미엄 백엔드는 350자, Google은 180자
   _split(text){
-    const MAX = 180;
+    const MAX = (this._backend==='azure'||this._backend==='openai') ? 350 : 180;
     const result = [];
-    // 문장 단위로 먼저 분리
     const sentences = text.replace(/([.!?。\n])\s*/g,'$1\n').split('\n').filter(s=>s.trim());
     let cur = '';
     for(const s of sentences){
@@ -400,7 +433,6 @@ const TTS = {
         if(cur) result.push(cur);
         if(clean.length <= MAX){ cur = clean; }
         else {
-          // 강제 분할
           let rem = clean;
           while(rem.length > MAX){
             const cut = rem.lastIndexOf(' ', MAX);
@@ -424,6 +456,9 @@ const TTS = {
     this._totalLen = text.length || 1;
     this._lang = lang || 'ko';
     this._playing = true; this._paused = false;
+    this._gen++;
+    this._prefetch = null; this._prefetch2 = null;
+    this._failCount = 0;
     this._next();
   },
 
@@ -437,21 +472,48 @@ const TTS = {
     const txt = this._chunks[this._idx];
     if(this._onChunkStart) this._onChunkStart(txt);
 
-    if(this.useAudio){
-      const blob = await this._fetchAudio(txt);
-      if(blob){ this._playBlob(blob, txt); return; }
-      this.useAudio = false; this._updateBadge();
+    if(!this._usingDevice()){
+      const myGen = this._gen;
+      let blob;
+      // 선행 다운로드된 청크가 있으면 즉시 사용
+      if(this._prefetch && this._prefetch.txt===txt && this._prefetch.gen===myGen && this._prefetch.blob){
+        blob = this._prefetch.blob;
+        this._prefetch = (this._prefetch2 && this._prefetch2.gen===myGen) ? this._prefetch2 : null;
+        this._prefetch2 = null;
+      } else {
+        this._prefetch = null; this._prefetch2 = null;
+        blob = await this._fetchAudio(txt);
+        if(this._gen !== myGen) return; // 기사가 바뀌었으면 무시
+      }
+      if(blob){
+        this._failCount = 0;
+        this._playBlob(blob, txt);
+        return;
+      }
+      // 실패: 연속 2회 이상이면 기기 음성으로 전환
+      this._failCount++;
+      if(this._failCount >= 2){
+        this.preferAudio = false;
+        this._updateBadge();
+        if(this._onFallback) this._onFallback();
+      } else {
+        // 1회 실패는 이 청크만 건너뛰고 Web Speech 사용
+        this._playSpeech(txt);
+        return;
+      }
     }
     this._playSpeech(txt);
   },
 
   async _fetchAudio(txt){
     try{
-      const ctrl = new AbortController();
-      const tid = setTimeout(()=>ctrl.abort(), 9000);
-      const r = await fetch('/api/tts?text='+encodeURIComponent(txt)+'&lang='+this._lang,{signal:ctrl.signal});
-      clearTimeout(tid);
+      let url = '/api/tts?text='+encodeURIComponent(txt)+'&lang='+this._lang;
+      if(this._voice) url += '&voice='+encodeURIComponent(this._voice);
+      const r = await fetch(url, {signal: AbortSignal.timeout(10000)});
       if(!r.ok) return null;
+      // 백엔드 정보 업데이트
+      const bk = r.headers.get('X-TTS-Backend');
+      if(bk && bk !== this._backend){ this._backend = bk; this._updateBadge(); }
       return await r.blob();
     }catch(_){ return null; }
   },
@@ -461,6 +523,8 @@ const TTS = {
     const a = new Audio(url);
     a.playbackRate = this._rate;
     this._audio = a;
+    const myGen = this._gen;
+
     a.ontimeupdate = ()=>{
       if(!a.duration) return;
       const ratio    = a.currentTime / a.duration;
@@ -468,15 +532,39 @@ const TTS = {
       const absChar  = this._offset + chunkPos;
       const pct      = Math.min(99, absChar / this._totalLen * 100);
       if(this._onProgress) this._onProgress(pct, absChar, txt, chunkPos, 0);
+
+      // 35% 지점에서 N+1 청크 선행 다운로드; 완료 후 즉시 N+2도 가져오기
+      if(ratio > 0.35 && !this._prefetch){
+        const nextTxt = this._chunks[this._idx + 1];
+        if(nextTxt){
+          this._prefetch = { txt: nextTxt, gen: myGen, blob: null };
+          this._fetchAudio(nextTxt).then(b => {
+            if(this._prefetch && this._prefetch.txt===nextTxt && this._prefetch.gen===myGen){
+              this._prefetch.blob = b;
+              const next2Txt = this._chunks[this._idx + 2];
+              if(next2Txt && !this._prefetch2 && this._gen===myGen){
+                this._prefetch2 = { txt: next2Txt, gen: myGen, blob: null };
+                this._fetchAudio(next2Txt).then(b2 => {
+                  if(this._prefetch2 && this._prefetch2.txt===next2Txt && this._prefetch2.gen===myGen)
+                    this._prefetch2.blob = b2;
+                });
+              }
+            }
+          });
+        }
+      }
     };
+
     a.onended = ()=>{
       URL.revokeObjectURL(url);
+      if(this._gen !== myGen) return;
       this._offset += txt.length + 1;
       this._idx++;
       this._next();
     };
     a.onerror = ()=>{
       URL.revokeObjectURL(url);
+      if(this._gen !== myGen) return;
       this._offset += txt.length + 1;
       this._idx++;
       this._next();
@@ -504,20 +592,23 @@ const TTS = {
   pause(){
     if(!this._playing||this._paused) return;
     this._paused=true;
-    if(this._audio) this._audio.pause();
-    else if(speechSynthesis) speechSynthesis.pause();
+    if(this._usingDevice()){ if(speechSynthesis) speechSynthesis.pause(); }
+    else if(this._audio) this._audio.pause();
   },
   resume(){
     if(!this._playing||!this._paused) return;
     this._paused=false;
-    if(this._audio) this._audio.play();
-    else if(speechSynthesis) speechSynthesis.resume();
+    if(this._usingDevice()){ if(speechSynthesis) speechSynthesis.resume(); }
+    else if(this._audio) this._audio.play();
   },
   stop(){
+    this._gen++;
     this._playing=false; this._paused=false;
+    this._prefetch=null; this._prefetch2=null;
     if(this._audio){ try{this._audio.pause();}catch(_){} this._audio=null; }
     try{ if(speechSynthesis) speechSynthesis.cancel(); }catch(_){}
     this._chunks=[]; this._idx=0; this._offset=0;
+    this._failCount=0;
   },
   setRate(v){
     this._rate=v;
@@ -541,6 +632,10 @@ TTS._onDone = () => {
   if(ni!==-1){ showToast(`✅ 다음: ${Q[ni].title.slice(0,20)}`); setTimeout(()=>playAt(ni,true),900); }
   else showToast('🎉 모든 기사 읽기 완료!');
 };
+TTS._onFallback = () => {
+  showToast('⚠️ 서버 TTS 오류 — 기기 음성으로 전환됩니다');
+  renderVoices();
+};
 
 /* ══════════════════════
    INIT
@@ -554,8 +649,8 @@ TTS._onDone = () => {
     if(!all.length) return;
     allVoices = all;
     if(!selVoice) selVoice = selectBestVoice(all);
+    loadVoicePref(); // 저장된 음성 설정 복원
     renderVoices();
-    if(all.length>1){ $('curVoiceName').textContent=selVoice?.name||''; show('voiceRow'); }
   }
   if(speechSynthesis){ loadVoices(); speechSynthesis.onvoiceschanged=loadVoices; }
 
@@ -615,32 +710,104 @@ function switchTab(tab){
 }
 
 /* ══════════════════════
-   VOICES (한국어/영어만)
+   VOICES
 ══════════════════════ */
 function toggleVoice(){
   voiceOpen=!voiceOpen;
   $('voiceArrow').textContent=voiceOpen?'▲':'▼';
   voiceOpen?show('vPanel'):hide('vPanel');
 }
-function renderVoices(){
-  // 한국어, 영어만 표시
-  const list = allVoices.filter(v=>v.lang?.startsWith('ko')||v.lang?.startsWith('en')).slice(0,24);
-  if(list.length<2){ hide('voiceRow'); return; }
-  $('vList').innerHTML=list.map(v=>{
-    const isGoo=GOOGLE_KW.some(k=>v.name.toLowerCase().includes(k));
-    const isFem=FEMALE_KW.some(k=>v.name.toLowerCase().includes(k));
-    const isKo=v.lang?.startsWith('ko');
-    const badge=isGoo?'<span class="vbadge g">Google</span>':isFem?'<span class="vbadge f">여성</span>':isKo?'<span class="vbadge k">한국어</span>':'';
-    const on=selVoice?.name===v.name;
-    return `<button class="vb${on?' on':''}" onclick="pickVoice('${v.name.replace(/'/g,"\\'")}')">
-      <span style="flex:1">${on?'✓ ':''}${v.name}<span style="opacity:.3;font-size:9px;margin-left:4px">${v.lang}</span></span>${badge}
-    </button>`;
-  }).join('');
+
+function saveVoicePref(){
+  try{ localStorage.setItem(LS_VOICE, JSON.stringify({
+    preferAudio: TTS.preferAudio,
+    serverVoice: TTS._voice,
+    voiceName: selVoice?.name||null
+  })); }catch(_){}
 }
+function loadVoicePref(){
+  try{
+    const raw = localStorage.getItem(LS_VOICE);
+    if(!raw) return;
+    const p = JSON.parse(raw);
+    TTS.preferAudio = p.preferAudio !== false;
+    if(p.serverVoice) TTS._voice = p.serverVoice;
+    if(p.voiceName && allVoices.length){
+      const v = allVoices.find(v=>v.name===p.voiceName);
+      if(v) selVoice = v;
+    }
+  }catch(_){}
+}
+
+function updateVoiceLabel(){
+  if(!TTS._usingDevice() && TTS._voice){
+    // 서버 음성 이름 표시
+    const az = AZURE_VOICES_KO.find(v=>v.name===TTS._voice);
+    const oa = OPENAI_VOICES.find(v=>v.name===TTS._voice);
+    $('curVoiceName').textContent = (az||oa)?.label || TTS._voice;
+  } else {
+    $('curVoiceName').textContent = selVoice?.name || '';
+  }
+}
+
+function renderVoices(){
+  const rows = [];
+  const curServerVoice = TTS._voice;
+  const usingServer = !TTS._usingDevice();
+
+  // ── 서버 AI 음성 (Azure/OpenAI 환경변수 설정 시만 표시) ──
+  if(TTS.useAudio && TTS._backend && TTS._backend !== 'google'){
+    const serverVoices = TTS._backend==='azure' ? AZURE_VOICES_KO : OPENAI_VOICES;
+    const backendLabel = TTS._backend==='azure' ? '☁️ Azure AI' : '🤖 OpenAI';
+    rows.push(`<div class="v-section">${backendLabel} 음성</div>`);
+    rows.push(serverVoices.map(v=>{
+      const on = usingServer && curServerVoice===v.name;
+      return `<button class="vb${on?' on':''}" onclick="pickVoice('__server__:${v.name}')">
+        <span style="flex:1">${on?'✓ ':''}${v.label}</span>
+        ${v.f?'<span class="vbadge f">여성</span>':'<span class="vbadge k">남성</span>'}
+      </button>`;
+    }).join(''));
+  }
+
+  // ── 기기 내장 음성 (한국어/영어) ──
+  const devList = allVoices.filter(v=>v.lang?.startsWith('ko')||v.lang?.startsWith('en')).slice(0,20);
+  if(devList.length){
+    rows.push(`<div class="v-section">기기 음성 – 한국어/영어</div>`);
+    rows.push(devList.map(v=>{
+      const isGoo = GOOGLE_KW.some(k=>v.name.toLowerCase().includes(k));
+      const isFem = FEMALE_KW.some(k=>v.name.toLowerCase().includes(k));
+      const isKo  = v.lang?.startsWith('ko');
+      const badge = isGoo?'<span class="vbadge g">Google</span>'
+                  : isFem?'<span class="vbadge f">여성</span>'
+                  : isKo ?'<span class="vbadge k">한국어</span>':'';
+      const on = TTS._usingDevice() && selVoice?.name===v.name;
+      return `<button class="vb${on?' on':''}" onclick="pickVoice('${v.name.replace(/'/g,"\\'")}')">
+        <span style="flex:1">${on?'✓ ':''}${v.name}<span style="opacity:.3;font-size:9px;margin-left:4px">${v.lang}</span></span>${badge}
+      </button>`;
+    }).join(''));
+  }
+
+  if(!rows.length){ hide('voiceRow'); return; }
+  show('voiceRow');
+  $('vList').innerHTML = rows.join('');
+  updateVoiceLabel();
+}
+
 function pickVoice(name){
-  selVoice=allVoices.find(v=>v.name===name)||selVoice;
-  $('curVoiceName').textContent=selVoice?.name||'';
+  if(name.startsWith('__server__:')){
+    // 서버 AI 음성 선택
+    TTS._voice = name.slice(11);
+    TTS.preferAudio = true;
+    TTS._updateBadge();
+  } else {
+    // 기기 내장 음성 선택
+    const found = allVoices.find(v=>v.name===name);
+    if(found) selVoice = found;
+    TTS.preferAudio = false; // 기기 음성 모드
+    TTS._updateBadge();
+  }
   renderVoices();
+  saveVoicePref();
   if(isOn) restartCur();
 }
 
