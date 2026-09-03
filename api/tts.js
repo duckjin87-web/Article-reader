@@ -1,5 +1,11 @@
 // Vercel 서버리스 — TTS 프록시
-// 우선순위: Azure TTS (env) → OpenAI TTS (env) → Google Translate TTS (fallback)
+// 우선순위: Azure TTS (env) → OpenAI TTS (env) → Edge TTS (무료) → Google TTS (폴백)
+import { MsEdgeTTS, OUTPUT_FORMAT } from 'msedge-tts';
+
+// Edge TTS 한국어 기본 음성
+const EDGE_VOICE_KO = 'ko-KR-SunHiNeural';
+const EDGE_VOICE_EN = 'en-US-AriaNeural';
+
 export default async function handler(req, res) {
   const origin  = req.headers['origin']  || '';
   const referer = req.headers['referer'] || '';
@@ -19,7 +25,7 @@ export default async function handler(req, res) {
   const OPENAI_KEY   = process.env.OPENAI_API_KEY;
 
   const isPremium = !!(AZURE_KEY || OPENAI_KEY);
-  const maxLen = isPremium ? 400 : 200;
+  const maxLen = isPremium ? 400 : 300;
   if (decoded.length > maxLen) {
     return res.status(400).json({ error: `text too long (max ${maxLen})` });
   }
@@ -77,6 +83,15 @@ export default async function handler(req, res) {
     } catch (_) { /* fall through */ }
   }
 
+  // ── Microsoft Edge TTS (무료 · 계정 불필요) ──────────────────────────────────
+  // Azure와 동일한 신경망 음성, 무료 사용 가능 (비공식 API)
+  // 서버에서 WebSocket 연결로 동작 — 실패 시 Google TTS로 자동 폴백
+  try {
+    const edgeVoice = voice || (lang === 'ko' ? EDGE_VOICE_KO : EDGE_VOICE_EN);
+    const buf = await edgeTTS(decoded, edgeVoice);
+    if (buf && buf.length > 1000) return sendAudio(buf, 'edge');
+  } catch (_) { /* fall through to Google */ }
+
   // ── Google Translate TTS (무료 폴백) ────────────────────────────────────────
   const ttsUrl =
     `https://translate.google.com/translate_tts?ie=UTF-8` +
@@ -95,4 +110,32 @@ export default async function handler(req, res) {
   } catch (e) {
     return res.status(500).json({ error: e.message });
   }
+}
+
+// Edge TTS 헬퍼 — msedge-tts WebSocket 스트림을 Buffer로 변환
+async function edgeTTS(text, voice) {
+  return new Promise((resolve, reject) => {
+    const tts = new MsEdgeTTS();
+    // 5초 타임아웃
+    const timeout = setTimeout(() => reject(new Error('edge tts timeout')), 12000);
+
+    tts.setMetadata(voice, OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3)
+      .then(() => {
+        const readable = tts.toStream(text);
+        const chunks = [];
+        readable.on('data', chunk => chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)));
+        readable.on('end', () => {
+          clearTimeout(timeout);
+          resolve(Buffer.concat(chunks));
+        });
+        readable.on('error', err => {
+          clearTimeout(timeout);
+          reject(err);
+        });
+      })
+      .catch(err => {
+        clearTimeout(timeout);
+        reject(err);
+      });
+  });
 }

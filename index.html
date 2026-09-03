@@ -352,7 +352,7 @@ const SI = {pending:'⬜',loading:'',ready:'✅',done:'🔵',error:'❌'};
 
 /* ══════════════════════
    TTS MANAGER
-   우선순위: Azure/OpenAI (서버 환경변수 설정 시) → Google TTS → 기기 Web Speech
+   우선순위: Azure/OpenAI (env 설정 시) → Edge TTS (무료) → Google TTS → 기기 Web Speech
    - 2-chunk 선행 다운로드로 청크 전환 시 끊김 제거
    - 연속 2회 실패해야 기기 음성으로 전환 (일시적 네트워크 오류 허용)
    - _gen 카운터로 기사 전환 시 이전 fetch 무시
@@ -409,8 +409,9 @@ const TTS = {
     const el = document.getElementById('ttsBadge');
     if(!el) return;
     if(this.useAudio && this.preferAudio){
-      const lbl = this._backend==='azure' ? '☁️ Azure TTS'
+      const lbl = this._backend==='azure'  ? '☁️ Azure TTS'
                 : this._backend==='openai' ? '🤖 OpenAI TTS'
+                : this._backend==='edge'   ? '⚡ Edge TTS'
                 : '🎵 Google TTS';
       el.className='tts-badge hi'; el.textContent=lbl;
     } else {
@@ -755,10 +756,13 @@ function renderVoices(){
   const curServerVoice = TTS._voice;
   const usingServer = !TTS._usingDevice();
 
-  // ── 서버 AI 음성 (Azure/OpenAI 환경변수 설정 시만 표시) ──
+  // ── 서버 AI 음성 (Azure/OpenAI/Edge TTS) ──
   if(TTS.useAudio && TTS._backend && TTS._backend !== 'google'){
-    const serverVoices = TTS._backend==='azure' ? AZURE_VOICES_KO : OPENAI_VOICES;
-    const backendLabel = TTS._backend==='azure' ? '☁️ Azure AI' : '🤖 OpenAI';
+    const isEdge = TTS._backend === 'edge';
+    const serverVoices = TTS._backend==='openai' ? OPENAI_VOICES : AZURE_VOICES_KO;
+    const backendLabel = TTS._backend==='azure'  ? '☁️ Azure AI'
+                       : TTS._backend==='openai' ? '🤖 OpenAI'
+                       : '⚡ Edge TTS (무료)';
     rows.push(`<div class="v-section">${backendLabel} 음성</div>`);
     rows.push(serverVoices.map(v=>{
       const on = usingServer && curServerVoice===v.name;
