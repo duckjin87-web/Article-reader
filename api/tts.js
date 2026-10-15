@@ -1,5 +1,5 @@
 // Vercel 서버리스 — TTS 프록시
-// 우선순위: Azure TTS (env) → OpenAI TTS (env) → Google Translate TTS (fallback)
+// 우선순위: Fish Audio (env) → Azure TTS (env) → OpenAI TTS (env) → Google TTS (폴백)
 export default async function handler(req, res) {
   const origin  = req.headers['origin']  || '';
   const referer = req.headers['referer'] || '';
@@ -14,12 +14,15 @@ export default async function handler(req, res) {
   try { decoded = decodeURIComponent(text); }
   catch { return res.status(400).send(''); }
 
+  const FISH_KEY     = process.env.FISH_API_KEY;
+  const FISH_VOICE   = process.env.FISH_VOICE_ID;          // fish.audio 마켓에서 고른 목소리 ID
+  const FISH_MODEL   = process.env.FISH_TTS_MODEL || 's2.1-pro';
   const AZURE_KEY    = process.env.AZURE_TTS_KEY;
   const AZURE_REGION = process.env.AZURE_TTS_REGION;
   const OPENAI_KEY   = process.env.OPENAI_API_KEY;
 
-  const isPremium = !!(AZURE_KEY || OPENAI_KEY);
-  const maxLen = isPremium ? 400 : 200;
+  const isPremium = !!(FISH_KEY || AZURE_KEY || OPENAI_KEY);
+  const maxLen = isPremium ? 400 : 300;
   if (decoded.length > maxLen) {
     return res.status(400).json({ error: `text too long (max ${maxLen})` });
   }
@@ -30,6 +33,31 @@ export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Cache-Control', 'public, max-age=86400');
     return res.status(200).send(Buffer.from(buf));
+  }
+
+  // ── Fish Audio TTS ─────────────────────────────────────────────────────────
+  // POST /v1/tts, Bearer 인증, model 헤더로 모델 선택, 응답은 mp3 바이너리
+  if (FISH_KEY) {
+    // voice 쿼리로 넘어온 reference_id 우선, 없으면 환경변수 기본 목소리
+    const refId = voice || FISH_VOICE;
+    const body = { text: decoded, format: 'mp3', mp3_bitrate: 64, normalize: true };
+    if (refId) body.reference_id = refId;
+    try {
+      const r = await fetch('https://api.fish.audio/v1/tts', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${FISH_KEY}`,
+          'Content-Type': 'application/json',
+          'model': FISH_MODEL,
+        },
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(15000),
+      });
+      if (r.ok) {
+        const buf = await r.arrayBuffer();
+        if (buf.byteLength > 1000) return sendAudio(buf, 'fish');
+      }
+    } catch (_) { /* fall through */ }
   }
 
   // ── Azure Cognitive Services TTS ──────────────────────────────────────────
