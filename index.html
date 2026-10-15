@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko" data-theme="paper">
+<html lang="ko">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -9,24 +9,11 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="기사읽기">
-<script>
-  // 첫 화면 깜빡임 방지: 저장된 디자인 시안을 렌더 전에 적용
-  try{
-    var t=localStorage.getItem('arq_theme');
-    var m={paper:'#F2F4F6',aurora:'#09090F',drive:'#000000'};
-    if(!m[t]) t='paper';
-    document.documentElement.dataset.theme=t;
-    document.querySelector('meta[name=theme-color]').content=m[t];
-  }catch(e){}
-</script>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <style>
 /* ═════════════════════════════════════════
-   DESIGN TOKENS — 시안 3종 (data-theme)
-   B · paper  : 밝고 깔끔한 미니멀 (기본)
-   A · aurora : 다크 글래스 + 그라데이션 글로우
-   C · drive  : 고대비 · 큰 버튼 운전 모드
+   DESIGN TOKENS — B · 페이퍼 (밝고 깔끔한 미니멀)
 ═════════════════════════════════════════ */
 :root{
   --r-sm:10px; --r-md:14px; --r-lg:20px;
@@ -36,7 +23,7 @@
   --fs-title:15px; --strip-fs:15px;
   --ctrl:54px; --ctrl-lg:74px;
 }
-:root,[data-theme=paper],[data-tp=paper]{
+:root{
   --bg:#F2F4F6; --seg-bg:#E5E8EB; --sheet-bg:#FFFFFF;
   --surface:#FFFFFF; --surface-2:#F2F4F6; --surface-3:#E5E8EB;
   --border:rgba(0,0,0,.05);
@@ -54,43 +41,6 @@
   --scrim:rgba(0,0,0,.42); --input-bg:#FFFFFF;
   --toast-bg:rgba(25,31,40,.94); --toast-text:#FFFFFF; --toast-act:#7DB4FF;
 }
-[data-theme=aurora],[data-tp=aurora]{
-  --bg:#09090F; --seg-bg:rgba(255,255,255,.06); --sheet-bg:#14121F;
-  --surface:rgba(255,255,255,.055); --surface-2:rgba(255,255,255,.07); --surface-3:rgba(255,255,255,.12);
-  --border:rgba(255,255,255,.08);
-  --text:#F5F3FF; --text-2:rgba(245,243,255,.74); --text-3:rgba(245,243,255,.46);
-  --accent:#A78BFA; --accent-2:#22D3EE; --accent-grad:linear-gradient(135deg,#8B5CF6 0%,#6366F1 48%,#22D3EE 100%);
-  --accent-soft:rgba(139,92,246,.2); --on-accent:#FFFFFF;
-  --danger:#FB7185; --danger-soft:rgba(251,113,133,.15);
-  --ok:#34D399; --ok-soft:rgba(52,211,153,.15); --warn:#FBBF24; --warn-soft:rgba(251,191,36,.14);
-  --hl-bg:linear-gradient(90deg,#8B5CF6,#22D3EE); --hl-text:#FFFFFF;
-  --player-bg:rgba(20,18,32,.78); --player-border:rgba(255,255,255,.08);
-  --shadow-1:inset 0 1px 0 rgba(255,255,255,.05);
-  --shadow-2:0 24px 60px rgba(0,0,0,.55);
-  --shadow-play:0 0 0 1px rgba(255,255,255,.1),0 10px 40px rgba(139,92,246,.6);
-  --ring:0 0 0 1px rgba(167,139,250,.7),0 12px 44px rgba(139,92,246,.32);
-  --scrim:rgba(3,2,10,.62); --input-bg:rgba(255,255,255,.06);
-  --toast-bg:rgba(36,32,58,.94); --toast-text:#FFFFFF; --toast-act:#67E8F9;
-}
-[data-theme=drive],[data-tp=drive]{
-  --bg:#000000; --seg-bg:#1C1C1E; --sheet-bg:#1C1C1E;
-  --surface:#141414; --surface-2:#1C1C1E; --surface-3:#2C2C2E;
-  --border:#262628;
-  --text:#FFFFFF; --text-2:#D1D1D6; --text-3:#8E8E93;
-  --accent:#FFB020; --accent-2:#FF8A00; --accent-grad:linear-gradient(135deg,#FFC94D 0%,#FF8A00 100%);
-  --accent-soft:rgba(255,176,32,.16); --on-accent:#111111;
-  --danger:#FF453A; --danger-soft:rgba(255,69,58,.17);
-  --ok:#30D158; --ok-soft:rgba(48,209,88,.16); --warn:#FFD60A; --warn-soft:rgba(255,214,10,.14);
-  --hl-bg:#FFB020; --hl-text:#000000;
-  --player-bg:#0D0D0D; --player-border:#262628;
-  --shadow-1:none; --shadow-2:0 24px 60px rgba(0,0,0,.8);
-  --shadow-play:0 8px 30px rgba(255,150,0,.4);
-  --ring:0 0 0 2px #FFB020;
-  --scrim:rgba(0,0,0,.72); --input-bg:#141414;
-  --toast-bg:#2C2C2E; --toast-text:#FFFFFF; --toast-act:#FFB020;
-  --fs-title:17px; --strip-fs:18px; --ctrl:62px; --ctrl-lg:90px; --r-lg:18px;
-}
-
 /* ═════════ BASE ═════════ */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html{height:100%;background:var(--bg);color:var(--text);
@@ -104,16 +54,6 @@ input,textarea{font:inherit}
 .dn{display:none!important}
 .ic{width:20px;height:20px;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .ic.fill{fill:currentColor;stroke:none}
-html.theming,html.theming *{transition:background-color .5s var(--ease),color .5s var(--ease),border-color .5s var(--ease),box-shadow .5s var(--ease)!important}
-
-/* aurora: 천천히 흐르는 오로라 배경 */
-[data-theme=aurora] body::before{content:'';position:fixed;inset:-25%;z-index:-1;pointer-events:none;
-  background:
-    radial-gradient(38% 32% at 18% 12%,rgba(139,92,246,.42),transparent 70%),
-    radial-gradient(34% 30% at 86% 28%,rgba(34,211,238,.24),transparent 70%),
-    radial-gradient(46% 40% at 50% 96%,rgba(99,102,241,.3),transparent 70%);
-  animation:drift 24s ease-in-out infinite alternate;will-change:transform}
-@keyframes drift{0%{transform:translate3d(0,0,0) scale(1)}50%{transform:translate3d(4%,-3%,0) scale(1.08)}100%{transform:translate3d(-4%,3%,0) scale(1)}}
 
 /* ═════════ TOP BAR ═════════ */
 .topbar{display:flex;align-items:center;gap:10px;width:100%;max-width:600px;margin:0 auto;padding:12px 16px 6px;flex-shrink:0}
@@ -124,8 +64,6 @@ html.theming,html.theming *{transition:background-color .5s var(--ease),color .5
 .seg button.on{color:var(--text)}
 .seg-ind{position:absolute;z-index:0;top:4px;bottom:4px;left:4px;width:calc((100% - 8px)/2);border-radius:10px;
   background:var(--surface);box-shadow:0 1px 3px rgba(0,0,0,.1);transition:transform .45s var(--spring)}
-[data-theme=aurora] .seg-ind{background:rgba(255,255,255,.13);box-shadow:inset 0 1px 0 rgba(255,255,255,.1)}
-[data-theme=drive] .seg-ind{background:var(--surface-3);box-shadow:none}
 .seg[data-i="1"] .seg-ind{transform:translateX(100%)}
 .cnt{min-width:20px;padding:1px 6px;border-radius:999px;font-size:11px;font-weight:800;background:var(--accent-soft);color:var(--accent)}
 .icon-btn{width:46px;height:46px;flex-shrink:0;border-radius:14px;display:grid;place-items:center;color:var(--text-2);background:var(--seg-bg);
@@ -165,10 +103,11 @@ html.theming,html.theming *{transition:background-color .5s var(--ease),color .5
 .msg button{color:inherit;opacity:.7}
 
 /* ═════════ CONTENT / LIST ═════════ */
-.content{flex:1;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.content{flex:1;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 .content::-webkit-scrollbar{width:0}
 .content-in{max-width:600px;margin:0 auto;padding:6px 16px 28px}
-.tab-pane.show{animation:fadeUp .4s var(--ease)}
+.tab-pane.in-r{animation:inR .42s var(--ease)}
+.tab-pane.in-l{animation:inL .42s var(--ease)}
 .list-head{display:flex;align-items:center;justify-content:space-between;padding:4px 2px 10px}
 .list-head .lh-t{font-size:13px;font-weight:600;color:var(--text-3)}
 .text-btn{display:inline-flex;align-items:center;gap:5px;padding:6px 8px;margin-right:-8px;border-radius:9px;font-size:13.5px;font-weight:800;color:var(--accent);transition:background .2s}
@@ -176,7 +115,7 @@ html.theming,html.theming *{transition:background-color .5s var(--ease),color .5
 .text-btn:active{background:var(--accent-soft)}
 .q-list,.sv-list{display:flex;flex-direction:column;gap:10px}
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-1)}
-.q-item{padding:14px 14px 6px;transition:box-shadow .35s var(--ease),border-color .35s,opacity .35s,background .35s}
+.q-item{position:relative;touch-action:pan-y;padding:14px 14px 6px;transition:box-shadow .35s var(--ease),border-color .35s,opacity .35s,background .35s}
 .q-item.enter{animation:cardIn .55s var(--spring) both;animation-delay:var(--d,0ms)}
 .q-item.active{box-shadow:var(--ring);border-color:transparent}
 .q-item.done{opacity:.55}
@@ -189,7 +128,6 @@ html.theming,html.theming *{transition:background-color .5s var(--ease),color .5
 .q-title{font-size:var(--fs-title);font-weight:700;line-height:1.4;color:var(--text);word-break:keep-all;overflow-wrap:anywhere;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .active .q-title{color:var(--accent)}
-[data-theme=aurora] .active .q-title{background:var(--accent-grad);-webkit-background-clip:text;background-clip:text;color:transparent}
 .q-meta{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:12.5px;color:var(--text-3);min-width:0}
 .q-host{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 .q-meta .dot{opacity:.6}
@@ -331,23 +269,6 @@ html.theming,html.theming *{transition:background-color .5s var(--ease),color .5
 .set-sec{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:22px 0 10px}
 .set-sec span{font-size:15px;font-weight:800}
 .set-sec small{font-size:12.5px;color:var(--text-3);text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.theme-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.tcard{display:flex;flex-direction:column;justify-content:flex-start;padding:7px 7px 10px;border-radius:18px;border:2px solid transparent;background:var(--surface-2);text-align:left;transition:transform .3s var(--spring),border-color .25s}
-.tcard:active{transform:scale(.95)}
-.tcard.on{border-color:var(--accent)}
-.tprev{position:relative;height:104px;border-radius:12px;overflow:hidden;background:var(--bg);padding:9px 8px;display:flex;flex-direction:column;gap:6px}
-.tprev[data-tp=aurora]{background:radial-gradient(70% 55% at 15% 10%,rgba(139,92,246,.55),transparent 70%),radial-gradient(60% 50% at 90% 40%,rgba(34,211,238,.3),transparent 70%),#09090F}
-.tprev .b1{height:7px;width:55%;border-radius:4px;background:var(--text);opacity:.85}
-.tprev .r{height:17px;border-radius:6px;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;padding:0 5px;gap:4px}
-.tprev .r::before{content:'';width:7px;height:7px;border-radius:3px;background:var(--accent-soft)}
-.tprev .r.a{box-shadow:var(--ring);border-color:transparent}
-.tprev .r.a::before{background:var(--accent)}
-.tprev .pl{position:absolute;left:0;right:0;bottom:0;height:28px;background:var(--player-bg);border-top:1px solid var(--player-border);display:grid;place-items:center}
-.tprev .pb{width:17px;height:17px;border-radius:50%;background:var(--accent-grad);box-shadow:var(--shadow-play)}
-.tname{margin-top:9px;padding:0 3px;font-size:13.5px;font-weight:800;color:var(--text);display:flex;align-items:center;gap:4px}
-.tname .ic{width:15px;height:15px;color:var(--accent);opacity:0;transform:scale(.4);transition:transform .35s var(--spring),opacity .2s}
-.tcard.on .tname .ic{opacity:1;transform:none}
-.tdesc{padding:0 3px;margin-top:2px;font-size:11.5px;line-height:1.35;color:var(--text-3)}
 .vlist{max-height:42vh;overflow-y:auto;padding:6px;border-radius:18px;background:var(--surface-2)}
 .vgroup-title{padding:10px 12px 5px;font-size:12px;font-weight:800;color:var(--text-3)}
 .vb{width:100%;display:flex;align-items:center;gap:8px;padding:12px;border-radius:13px;text-align:left;font-size:14.5px;color:var(--text);transition:background .2s}
@@ -409,6 +330,61 @@ html.theming,html.theming *{transition:background-color .5s var(--ease),color .5
 @keyframes cardIn{from{opacity:0;transform:translateY(16px) scale(.97)}to{opacity:1;transform:none}}
 @keyframes dropIn{from{opacity:0;transform:translateY(-10px) scale(.97)}to{opacity:1;transform:none}}
 @keyframes popIn{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
+
+/* ═════════ MOTION ═════════ */
+/* 첫 화면: 위에서 차례로 내려오고 플레이어는 아래에서 올라옴 */
+.topbar{animation:riseIn .6s var(--spring) both}
+.url-area{animation:riseIn .6s .07s var(--spring) both}
+.player{animation:playerIn .75s .12s var(--spring) both}
+@keyframes riseIn{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:none}}
+@keyframes playerIn{from{transform:translateY(105%)}to{transform:none}}
+/* 링크 추가 성공 시 입력창 반짝 */
+.url-row.ok{animation:okFlash .7s var(--ease)}
+@keyframes okFlash{30%{border-color:var(--ok);box-shadow:0 0 0 4px var(--ok-soft)}}
+/* 카드: 왼쪽으로 밀어서 삭제 + 접히며 사라짐 */
+.q-item::after{content:'';position:absolute;top:50%;right:-62px;width:44px;height:44px;margin-top:-22px;border-radius:50%;pointer-events:none;
+  background:var(--danger) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.5 6h17M18.5 6l-.8 13.1a2 2 0 0 1-2 1.9H8.3a2 2 0 0 1-2-1.9L5.5 6M9 6V4.5A1.5 1.5 0 0 1 10.5 3h3A1.5 1.5 0 0 1 15 4.5V6'/%3E%3C/svg%3E") center/20px no-repeat;opacity:var(--sw,0);transform:scale(calc(.5 + var(--sw,0) * .5))}
+.q-item.swiping{transition:none}
+.q-item.snap{transition:transform .5s var(--spring)}
+.q-item.leaving{pointer-events:none;overflow:hidden;opacity:0;margin-bottom:-10px;padding-top:0;padding-bottom:0;border-width:0;
+  transition:height .36s var(--ease),opacity .28s var(--ease),transform .36s var(--ease),margin .36s var(--ease),padding .36s var(--ease)}
+.q-item.leaving:not([style*=translate]){transform:scale(.94)}
+/* 본문 불러오는 중: 카드 위로 빛이 지나감 */
+.q-item.loading .q-info{position:relative;overflow:hidden;border-radius:8px}
+.q-item.loading .q-info::after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(100deg,transparent 20%,rgba(49,130,246,.13) 50%,transparent 80%);transform:translateX(-100%);animation:sweep 1.3s var(--ease) infinite}
+@keyframes sweep{to{transform:translateX(100%)}}
+/* 상태 칩·저장 별·개수·배속 숫자: 바뀔 때 톡 */
+.chip.pop{animation:chipPop .55s var(--spring)}
+@keyframes chipPop{0%{transform:scale(.55);opacity:.2}60%{transform:scale(1.14)}100%{transform:none;opacity:1}}
+.act.pop .ic{animation:starPop .6s var(--spring)}
+@keyframes starPop{0%{transform:scale(.3) rotate(-50deg)}60%{transform:scale(1.4) rotate(12deg)}100%{transform:none}}
+.cnt.pop,.spd-v.bump{animation:bump .35s var(--spring)}
+@keyframes bump{50%{transform:scale(1.28)}}
+.q-lead .eq,.pl-art .eq{animation:popIn .45s var(--spring)}
+/* 음성 준비 중: 재생 버튼 둘레가 돌고 진행 바에 빛이 흐름 */
+.cb.play::before{content:'';position:absolute;inset:-6px;border-radius:50%;border:3px solid transparent;border-top-color:var(--accent);border-right-color:var(--accent);opacity:0;transition:opacity .25s;pointer-events:none}
+.player.buffering .cb.play::before{opacity:1;animation:spin .8s linear infinite}
+.player.buffering .cb.play::after{animation:none;opacity:0}
+.prog-track::before{content:'';position:absolute;inset:0;border-radius:inherit;opacity:0;transition:opacity .3s;
+  background:linear-gradient(90deg,transparent,rgba(49,130,246,.45),transparent) no-repeat;background-size:35% 100%}
+.player.buffering .prog-track::before{opacity:1;animation:bufSweep 1.1s linear infinite}
+@keyframes bufSweep{from{background-position:-50% 0}to{background-position:150% 0}}
+/* 재생 중: 진행 바 손잡이가 숨쉬듯 */
+.player.playing .prog-fill::after{animation:knob 1.8s ease-in-out infinite}
+@keyframes knob{50%{box-shadow:0 1px 5px rgba(0,0,0,.3),0 0 0 6px rgba(49,130,246,.2)}}
+/* 다음 문단으로 넘어갈 때 읽는 영역이 부드럽게 갈아 끼워짐 */
+.strip.swap{animation:stripSwap .4s var(--ease)}
+@keyframes stripSwap{from{opacity:.3;transform:translateY(6px)}to{opacity:1;transform:none}}
+/* 탭 전환: 방향에 맞춰 좌우로 */
+@keyframes inR{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:none}}
+@keyframes inL{from{opacity:0;transform:translateX(-28px)}to{opacity:1;transform:none}}
+/* 시트: 내용이 차례로 떠오름 */
+.sheet-wrap.open .sheet>*{animation:fadeUp .45s var(--ease) both}
+.sheet-wrap.open .sheet>*:nth-child(2){animation-delay:.03s}
+.sheet-wrap.open .sheet>*:nth-child(3){animation-delay:.06s}
+.sheet-wrap.open .sheet>*:nth-child(4){animation-delay:.09s}
+.sheet-wrap.open .sheet>*:nth-child(5){animation-delay:.12s}
+.sheet-wrap.open .sheet>*:nth-child(n+6){animation-delay:.15s}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
@@ -571,11 +547,9 @@ html.theming,html.theming *{transition:background-color .5s var(--ease),color .5
   <div class="sheet">
     <div class="grab"></div>
     <h2>설정</h2>
-    <div class="set-sec"><span>디자인 시안</span><small>탭하면 바로 적용돼요</small></div>
-    <div class="theme-grid" id="themeGrid"></div>
     <div class="set-sec" id="voiceSec"><span>읽어주는 목소리</span><small id="curVoiceName"></small></div>
     <div class="vlist" id="vList"></div>
-    <p class="set-note">운전 중 화면을 끄거나 내비를 켜도 계속 들으려면 <b>서버 음성</b>을 쓰세요. 기기 음성은 화면이 꺼지면 안드로이드가 멈춥니다.</p>
+    <p class="set-note"><b>서버 음성</b>은 화면을 끄거나 내비를 켜도 끊김 없이 이어집니다. <b>기기 음성</b>도 백그라운드에서 계속 읽도록 유지하며, 안드로이드가 음성을 끊으면 끊긴 문장부터 서버 음성으로 자동으로 이어 읽어요.</p>
   </div>
 </div>
 
@@ -635,7 +609,7 @@ let posSaveAt = 0, posStateAt = 0;
 let _dInputIdx = -1;
 
 const LS_Q='arq_v3', LS_SAVED='arq_saved_v1', LS_SPD='arq_spd', LS_VOICE='arq_voice',
-      LS_THEME='arq_theme', LS_CPS='arq_cps', LS_UI='arq_ui', LS_LAST='arq_last';
+      LS_CPS='arq_cps', LS_UI='arq_ui', LS_LAST='arq_last';
 const GOOGLE_KW = ['google 한국','google korean'];
 const FEMALE_KW = ['yuna','유나','heami','혜미','sunhi','선희','sora','소라','female','여성','nari','나리','jimin','지민','seohyeon','서현','yujin','유진','soonbok','순복','kyuri','규리'];
 const MULTI_KW  = ['multilingual','다국어'];
@@ -660,12 +634,6 @@ const ST = {
   pending:['대기','st-pend'], loading:['불러오는 중','st-load'], ready:['준비됨','st-ready'],
   done:['완료','st-done'], error:['실패','st-err'],
 };
-const THEMES = {
-  aurora:{name:'A · 오로라',  desc:'다크 · 글로우', color:'#09090F'},
-  paper: {name:'B · 페이퍼',  desc:'밝은 미니멀',   color:'#F2F4F6'},
-  drive: {name:'C · 드라이브', desc:'고대비 · 큰 글씨', color:'#000000'},
-};
-
 /* ══════════════════════
    TTS MANAGER
    서버 음성(/api/tts: Fish·Azure·OpenAI·Google) → 실패 시 기기 음성(Web Speech)
@@ -686,6 +654,8 @@ const TTS = {
   _rate: 1.0, _lang: 'ko', _gen: 0, _prefetch: null, _prefetch2: null,
   preferAudio: true, _failCount: 0, _backend: null, _voice: null,
   _serverDownUntil: 0, _speechTimer: null,
+  _forceServer: false, _forceWhy: '',  // 기기 음성이 끊겨 서버 음성으로 이어 읽는 중 ('bg' | 'broken')
+  _devStalls: 0, _stallGuard: -1, _ka: false, _kaUrl: null, _onBuffer: null, _onChunksChanged: null,
   _cps: { audio: 6.5, device: 6.5 },   // 1배속 기준 초당 글자 수 (재생하면서 학습)
 
   async checkAvail(){
@@ -707,7 +677,8 @@ const TTS = {
       if(this.useAudio === null){ el.className='badge'; el.textContent='음성 확인 중'; }
       else if(!this._usingDevice()){
         el.className='badge badge-ok';
-        el.textContent = ({azure:'Azure TTS', openai:'OpenAI TTS', fish:'Fish Audio'})[this._backend] || 'Google TTS';
+        el.textContent = (({azure:'Azure TTS', openai:'OpenAI TTS', fish:'Fish Audio'})[this._backend] || 'Google TTS')
+          + (this._forceServer && !this.preferAudio ? ' (백그라운드)' : '');
       } else { el.className='badge badge-dev'; el.textContent='기기 음성'; }
     }
     renderVoices();
@@ -745,7 +716,7 @@ const TTS = {
   },
 
   // 지금 이 순간 기기 음성(Web Speech)으로 읽어야 하는지
-  _usingDevice(){ return !(this.useAudio && this.preferAudio && Date.now() >= this._serverDownUntil); },
+  _usingDevice(){ return !(this.useAudio && (this.preferAudio || this._forceServer) && Date.now() >= this._serverDownUntil); },
   cpsNow(){ return this._cps[this._usingDevice() ? 'device' : 'audio'] || 6.5; },
   _learnCps(kind, chars, secs1x){
     if(chars < 40 || !(secs1x > 0.8)) return;
@@ -760,6 +731,23 @@ const TTS = {
     return this._el;
   },
 
+  // 기기 음성으로 읽는 동안 들리지 않는 오디오를 함께 재생 → 안드로이드가 '미디어 재생 중'으로 인식해
+  // 백그라운드에서 앱을 얼리지 않고, 잠금화면·블루투스 컨트롤도 표시됨
+  _keepAlive(on){
+    const a = this._getEl();
+    if(on){
+      if(!this._ka){
+        if(!this._kaUrl) this._kaUrl = URL.createObjectURL(silentWav(10));
+        a.onended = a.onerror = a.ontimeupdate = null;
+        a.loop = true; a.src = this._kaUrl; this._ka = true;
+      }
+      if(a.paused) a.play().catch(()=>{});
+    } else if(this._ka){
+      this._ka = false; a.loop = false;
+      try{ a.pause(); }catch(_){}
+    }
+  },
+
   // 현재 소리를 끊고 진행 중인 콜백·요청을 모두 무효화
   _halt(){
     this._gen++;
@@ -768,6 +756,7 @@ const TTS = {
     if(a){ a.onended = a.onerror = a.ontimeupdate = null; try{ a.pause(); }catch(_){} }
     try{ if(window.speechSynthesis) speechSynthesis.cancel(); }catch(_){}
     this._prefetch = null; this._prefetch2 = null;
+    if(this._onBuffer) this._onBuffer(false);
   },
 
   async start(text, lang, fromChunk){
@@ -811,6 +800,7 @@ const TTS = {
     if(!this._usingDevice()){
       let blob = null;
       const pf = this._prefetch;
+      if(this._onBuffer && !(pf && pf.done && pf.txt === txt && pf.blob)) this._onBuffer(true);
       if(pf && pf.gen === myGen && pf.txt === txt){
         blob = pf.done ? pf.blob : await pf.promise;
         if(this._gen !== myGen) return;
@@ -878,6 +868,7 @@ const TTS = {
     this._curUrl = url;
     this._audio = a;
     a.onended = a.onerror = a.ontimeupdate = null;
+    this._ka = false; a.loop = false;
     a.src = url;
     if(old) setTimeout(()=>URL.revokeObjectURL(old), 1500);
     a.defaultPlaybackRate = this._rate; a.playbackRate = this._rate;
@@ -899,7 +890,7 @@ const TTS = {
     };
     a.onerror = ()=>{ if(this._gen === myGen) advance(); };
     if(this._paused) return;   // 일시정지 중이면 resume() 때 재생
-    a.play().catch(()=>{
+    a.play().then(()=>{ if(this._gen === myGen && this._onBuffer) this._onBuffer(false); }).catch(()=>{
       if(this._gen !== myGen) return;
       if(document.hidden){
         setTimeout(()=>{
@@ -921,32 +912,54 @@ const TTS = {
 
   _playSpeech(txt){
     const myGen = this._gen;
+    clearInterval(this._speechTimer); this._speechTimer = null;
     const advance = ()=>{
       if(this._gen !== myGen) return;
       clearInterval(this._speechTimer); this._speechTimer = null;
       this._offset += txt.length + 1; this._idx++; this._next();
     };
     if(!window.speechSynthesis){ advance(); return; }
+    this._keepAlive(true);
+    if(this._onBuffer) this._onBuffer(false);
     const u = new SpeechSynthesisUtterance(txt);
     if(selVoice) u.voice = selVoice;
     u.rate = this._rate;
     u.lang = this._lang==='ko' ? 'ko-KR' : 'en-US';
-    let t0 = 0, gotBoundary = false, lastPos = 0;
-    // 안드로이드 구글 음성 등은 onboundary를 보내지 않음 → 경과 시간으로 위치 추정
+    const tSpeak = performance.now();
+    let t0 = 0, gotBoundary = false, lastPos = 0, quiet = 0, sawSpeaking = false;
+    const expect = ()=> txt.length / (this._cps.device * this._rate);
     const tick = ()=>{
-      if(this._gen !== myGen || this._paused || gotBoundary || !t0) return;
-      const pos = Math.min(txt.length-1, Math.round((performance.now()-t0)/1000 * this._cps.device * this._rate));
-      if(pos > lastPos){ lastPos = pos; this._emit(txt, pos, 0); }
+      if(this._gen !== myGen || this._paused) return;
+      const now = performance.now(), speaking = speechSynthesis.speaking;
+      if(speaking) sawSpeaking = true;
+      // onstart를 보내지 않는 기기 대비: 실제로 말하기 시작했으면 그때를 시작 시점으로
+      if(!t0 && speaking && now - tSpeak > 600) t0 = tSpeak + 300;
+      // 안드로이드 음성은 onboundary를 거의 보내지 않음 → 경과 시간으로 위치 추정 (하이라이트·남은 시간)
+      if(t0 && !gotBoundary){
+        const pos = Math.min(txt.length-1, Math.round((now-t0)/1000 * this._cps.device * this._rate));
+        if(pos > lastPos){ lastPos = pos; this._emit(txt, pos, 0); }
+      }
+      // ── 멈춤 감지: 백그라운드에서 안드로이드가 음성을 끊거나, onend가 누락되는 경우
+      if(!t0){
+        if(now - tSpeak > (document.hidden ? 4000 : 9000)) this._deviceStalled(txt, 0, myGen);
+        return;
+      }
+      const ranFor = (now - t0)/1000;
+      quiet = speaking ? 0 : quiet + 1;
+      if(sawSpeaking && quiet >= 3){
+        if(ranFor >= expect()*0.7) advance();          // 다 읽었는데 onend만 못 받음
+        else this._deviceStalled(txt, lastPos, myGen);  // 중간에 끊김
+      } else if(ranFor > expect()*2.5 + 5){
+        if(speaking) this._deviceStalled(txt, lastPos, myGen); else advance();
+      }
     };
-    u.onstart = ()=>{
-      if(this._gen !== myGen) return;
-      t0 = performance.now();
-      clearInterval(this._speechTimer); this._speechTimer = setInterval(tick, 200);
-    };
+    this._speechTimer = setInterval(tick, 250);
+    u.onstart = ()=>{ if(this._gen === myGen && !t0) t0 = performance.now(); };
     u.onboundary = e=>{
       if(this._gen !== myGen) return;
       if(e.name && e.name !== 'word') return;
       gotBoundary = true;
+      if(!t0) t0 = performance.now();
       let len = e.charLength;
       if(!len){ const m = txt.slice(e.charIndex).match(/^[^\s.,!?。·]+/); len = m ? m[0].length : 1; }
       lastPos = e.charIndex;
@@ -955,14 +968,47 @@ const TTS = {
     u.onend = ()=>{
       if(this._gen !== myGen) return;
       if(t0) this._learnCps('device', txt.length, (performance.now()-t0)/1000 * this._rate);
+      this._devStalls = 0;
       advance();
     };
     u.onerror = e=>{
       if(this._gen !== myGen) return;
-      if(e.error==='interrupted' || e.error==='canceled') return;
+      // 우리가 끊은 경우는 세대(_gen)가 바뀌어 위에서 걸러짐 → 여기 온 '중단'은 시스템이 끊은 것
+      if(e.error==='interrupted' || e.error==='canceled'){ this._deviceStalled(txt, lastPos, myGen); return; }
       advance();
     };
     speechSynthesis.speak(u);
+  },
+
+  // 기기 음성이 중간에 끊김 → 끊긴 문장부터 이어 읽기 (백그라운드면 서버 음성으로 넘겨서)
+  _deviceStalled(txt, pos, myGen){
+    if(this._gen !== myGen || this._paused || this._stallGuard === myGen) return;
+    this._stallGuard = myGen;
+    clearInterval(this._speechTimer); this._speechTimer = null;
+    const k = this._idx;
+    let cut = 0;
+    if(pos > 0){
+      const b = txt.slice(0, pos);
+      const m = Math.max(b.lastIndexOf('. '), b.lastIndexOf('? '), b.lastIndexOf('! '));
+      cut = m > 0 ? m + 2 : 0;
+    }
+    let at = k;
+    if(cut > 0 && cut < txt.length - 5){
+      // 이미 읽은 문장은 건너뛰도록 현재 문단을 [읽은 부분, 남은 부분]으로 나눔
+      this._chunks.splice(k, 1, txt.slice(0, cut).trim(), txt.slice(cut).trim());
+      at = k + 1;
+      if(this._onChunksChanged) this._onChunksChanged();
+    }
+    this._devStalls++;
+    const hidden = document.hidden;
+    if(hidden || this._devStalls >= 3){
+      if(this.useAudio){
+        this._forceServer = true; this._forceWhy = hidden ? 'bg' : 'broken'; this._serverDownUntil = 0;
+        this._updateBadge();
+        if(!hidden && this._onFallback) this._onFallback();
+      } else if(hidden){ if(this._onStall) this._onStall(); return; }
+    }
+    this.jumpTo(at);
   },
 
   pause(){
@@ -994,7 +1040,7 @@ const TTS = {
     this._playing = false; this._paused = false;
     if(!keepEl){
       const a = this._el;
-      if(a){ try{ a.removeAttribute('src'); a.load(); }catch(_){} }
+      if(a){ this._ka = false; a.loop = false; try{ a.removeAttribute('src'); a.load(); }catch(_){} }
       if(this._curUrl){ URL.revokeObjectURL(this._curUrl); this._curUrl = null; }
     }
     this._audio = null;
@@ -1013,6 +1059,7 @@ TTS._onProgress = (pct, abs, chunk, pos, wlen) => {
   updateViewerHighlight(pos, wlen);
 };
 TTS._onChunkStart = (chunk) => {
+  const rs = $('readingStrip'); rs.classList.remove('swap'); void rs.offsetWidth; rs.classList.add('swap');
   updateReadingText(chunk, 0, 0);
   updateViewerHighlight(0, 0);
   updatePlTime(TTS._offset);
@@ -1025,7 +1072,10 @@ TTS._onChunkStart = (chunk) => {
     try{ localStorage.setItem(LS_LAST, JSON.stringify({id:q.id, t:now})); }catch(_){}
   }
 };
-TTS._onFallback = () => showToast('서버 음성이 불안정해 잠시 기기 음성으로 읽어요');
+TTS._onFallback = () => showToast(TTS._forceWhy==='broken' && !TTS._usingDevice()
+  ? '기기 음성이 자꾸 멈춰서 서버 음성으로 이어 읽어요' : '서버 음성이 불안정해 잠시 기기 음성으로 읽어요');
+TTS._onBuffer = b => $('player').classList.toggle('buffering', !!b && isOn);
+TTS._onChunksChanged = () => { if(viewer.open && viewer.mode==='text') renderViewer(); };
 TTS._onStall = () => {
   wasInterrupted = true; isPaused = true; TTS._paused = true;
   updPlayBtn();
@@ -1150,27 +1200,6 @@ function saveSavedList(){ try{ localStorage.setItem(LS_SAVED, JSON.stringify(SAV
 function saveUi(){ try{ localStorage.setItem(LS_UI, JSON.stringify({fs:readerFs, collapsed:playerCollapsed})); }catch(_){} }
 
 /* ══════════════════════
-   THEME (디자인 시안)
-══════════════════════ */
-function applyTheme(t, animate){
-  if(!THEMES[t]) t = 'paper';
-  const h = document.documentElement;
-  if(animate){ h.classList.add('theming'); setTimeout(()=>h.classList.remove('theming'), 650); }
-  h.dataset.theme = t;
-  const m = document.querySelector('meta[name=theme-color]'); if(m) m.content = THEMES[t].color;
-  try{ localStorage.setItem(LS_THEME, t); }catch(_){}
-  renderThemeGrid();
-}
-function renderThemeGrid(){
-  const cur = document.documentElement.dataset.theme;
-  $('themeGrid').innerHTML = Object.entries(THEMES).map(([k,t])=>`
-    <button class="tcard${k===cur?' on':''}" onclick="applyTheme('${k}',true)">
-      <div class="tprev" data-tp="${k}"><div class="b1"></div><div class="r a"></div><div class="r"></div><div class="pl"><div class="pb"></div></div></div>
-      <div class="tname">${t.name}${ic('check')}</div><div class="tdesc">${t.desc}</div>
-    </button>`).join('');
-}
-
-/* ══════════════════════
    TABS
 ══════════════════════ */
 function switchTab(tab){
@@ -1180,8 +1209,9 @@ function switchTab(tab){
   $('tabBtnQ').classList.toggle('on', tab==='queue');
   $('tabBtnS').classList.toggle('on', tab==='saved');
   const show_ = tab==='queue' ? 'tabQueue' : 'tabSaved', hide_ = tab==='queue' ? 'tabSaved' : 'tabQueue';
-  hide(hide_); $(hide_).classList.remove('show');
-  show(show_); const el=$(show_); el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+  hide(hide_); $(hide_).classList.remove('in-l','in-r');
+  show(show_); const el=$(show_); el.classList.remove('in-l','in-r'); void el.offsetWidth; el.classList.add(tab==='saved'?'in-r':'in-l');
+  haptic(6);
   $('urlArea').style.display = tab==='queue' ? '' : 'none';
   $('content').scrollTop = 0;
 }
@@ -1239,7 +1269,7 @@ function pickVoice(name){
   if(name==='__server__'){ TTS.preferAudio=true; TTS._voice=null; }
   else if(AZURE_VOICES_KO.some(v=>v.name===name)||OPENAI_VOICES.some(v=>v.name===name)){ TTS.preferAudio=true; TTS._voice=name; }
   else { selVoice = allVoices.find(v=>v.name===name)||selVoice; TTS.preferAudio=false; TTS._voice=null; }
-  TTS._serverDownUntil = 0;
+  TTS._serverDownUntil = 0; TTS._forceServer = false; TTS._devStalls = 0;
   saveVoicePref();
   TTS._updateBadge();
   // 처음부터가 아니라 지금 읽던 문단부터 새 목소리로
@@ -1410,7 +1440,8 @@ function addUrl(override){
   if(Q.find(q=>q.url===url)){ showErr('이미 추가된 기사예요.'); return -1; }
   Q.push({id:++uid, url, title:shortHost(url), content:'', status:'pending', err:''});
   if(override===undefined) $('urlInput').value = '';
-  hideErr(); hideClip();
+  hideErr(); hideClip(); haptic(12);
+  const ur = document.querySelector('.url-row'); ur.classList.remove('ok'); void ur.offsetWidth; ur.classList.add('ok');
   if(activeTab!=='queue') switchTab('queue');
   renderQ(); saveQ(); bgLoad();
   requestAnimationFrame(()=>{ const c=$('content'); c.scrollTo({top:c.scrollHeight, behavior:'smooth'}); });
@@ -1422,22 +1453,50 @@ function handleIncomingUrl(u, msg){
   const i = addUrl(u);
   if(i>=0) showToast(msg, {action:'바로 듣기', ms:5000, onAction:()=>playOrLoadItem(Q.findIndex(q=>q.url===u))});
 }
+// 카드를 접으며 사라지게 한 뒤 콜백 (스와이프로 밀려난 경우 그 방향 그대로)
+function animateOut(el, done){
+  el.style.height = el.offsetHeight + 'px';
+  void el.offsetWidth;
+  el.classList.add('leaving');
+  el.style.height = '0px';
+  setTimeout(done, 360);
+}
 function removeItem(id){
-  const i = Q.findIndex(q=>q.id===id); if(i<0) return;
-  if(i===curIdx) stopAll();
-  if(viewer.open && viewer.id===id) closeOv('viewer');
-  openSites.delete(id);
-  Q.splice(i,1);
-  if(curIdx>i) curIdx--; else if(curIdx===i) curIdx=-1;
-  renderQ(); saveQ();
+  const el = $('qitem-'+id);
+  if(!Q.some(q=>q.id===id) || el?.classList.contains('leaving')) return;
+  haptic(12);
+  const finish = ()=>{
+    const j = Q.findIndex(q=>q.id===id); if(j<0) return;
+    const item = Q[j];
+    if(j===curIdx) stopAll();
+    if(viewer.open && viewer.id===id) closeOv('viewer');
+    openSites.delete(id);
+    Q.splice(j,1);
+    if(curIdx>j) curIdx--; else if(curIdx===j) curIdx=-1;
+    el?.remove();
+    renderQ(); saveQ();
+    showToast('기사를 삭제했어요', {action:'되돌리기', ms:4500, onAction:()=>{
+      if(Q.some(q=>q.id===item.id)) return;
+      const at = Math.min(j, Q.length);
+      if(curIdx>=at) curIdx++;
+      Q.splice(at, 0, item); renderedIds.delete(item.id);
+      renderQ(); saveQ();
+    }});
+  };
+  el ? animateOut(el, finish) : finish();
 }
 function clearAll(){
   if(!Q.length) return;
+  haptic(18);
   const backup = Q.slice();
-  stopAll(); Q=[]; curIdx=-1; openSites.clear();
-  if(viewer.open) closeOv('viewer');
-  renderQ(); saveQ();
-  showToast('재생목록을 비웠어요', {action:'되돌리기', ms:5000, onAction:()=>{ Q=backup; renderQ(); saveQ(); }});
+  const cards = [...$('qList').children];
+  cards.forEach((c,k)=>setTimeout(()=>{ c.style.height=c.offsetHeight+'px'; void c.offsetWidth; c.classList.add('leaving'); c.style.height='0px'; }, Math.min(k,8)*35));
+  setTimeout(()=>{
+    stopAll(); Q=[]; curIdx=-1; openSites.clear();
+    if(viewer.open) closeOv('viewer');
+    $('qList').innerHTML=''; renderQ(); saveQ();
+    showToast('재생목록을 비웠어요', {action:'되돌리기', ms:5000, onAction:()=>{ Q=backup; renderedIds=new Set(); renderQ(); saveQ(); }});
+  }, Math.min(cards.length,8)*35 + 340);
 }
 function playAll(){
   if(!Q.some(q=>q.status!=='done'&&q.status!=='error')) Q.forEach(q=>{ if(q.status==='done'){ q.status='ready'; q.pos=0; } });
@@ -1469,14 +1528,19 @@ function renderQ(){
         el.style.setProperty('--d', Math.min(list.children.length, 6)*50+'ms');
         el.addEventListener('animationend', ()=>el.classList.remove('enter'), {once:true});
       }
+      attachSwipe(el, q.id);
       list.appendChild(el);
     }
     const active = i===curIdx && isOn;
-    const cls = ['card','q-item', active&&'active', q.status==='done'&&'done', q.status==='error'&&'err', el.classList.contains('enter')&&'enter'].filter(Boolean).join(' ');
+    const cls = ['card','q-item', active&&'active', q.status==='done'&&'done', q.status==='error'&&'err', q.status==='loading'&&'loading',
+                 el.classList.contains('enter')&&'enter', el.classList.contains('swiping')&&'swiping', el.classList.contains('snap')&&'snap', el.classList.contains('leaving')&&'leaving'].filter(Boolean).join(' ');
     if(el.className !== cls) el.className = cls;
     setHtml(el.querySelector('.q-main'), mainHtml(q,i,active));
+    const stKey = active ? (isPaused?'p':'a') : q.status;
+    if(el._st && el._st !== stKey && stKey !== 'loading'){ const c=el.querySelector('.chip'); if(c){ c.classList.add('pop'); } }
+    el._st = stKey;
     setHtml(el.querySelector('.q-acts'), actsHtml(q,i));
-    el.querySelector('.q-main').onclick = ()=>playOrLoadItem(i);
+    el.querySelector('.q-main').onclick = ()=>{ if(Date.now() - (el._swipedAt||0) > 400) playOrLoadItem(i); };
   });
   renderedIds = new Set(Q.map(q=>q.id));
   updateQHead();
@@ -1500,13 +1564,14 @@ function actsHtml(q, i){
     <button class="act" onclick="openViewer(${i})">${ic('maximize')}<span>크게 보기</span></button>
     ${q.status==='error'
       ? `<button class="act" onclick="openDInput(${i})">${ic('edit')}<span>직접 입력</span></button>`
-      : `<button class="act${saved?' on':''}" onclick="toggleSaveItem(${i})">${ic('star')}<span>${saved?'저장됨':'저장'}</span></button>`}
+      : `<button class="act${saved?' on':''}" data-a="save" onclick="toggleSaveItem(${i})">${ic('star')}<span>${saved?'저장됨':'저장'}</span></button>`}
     <button class="act" onclick="openShareIdx(${i})">${ic('share')}<span>공유</span></button>
     <button class="act act-del" onclick="removeItem(${q.id})" aria-label="삭제">${ic('x')}</button>`;
 }
 function setHtml(el, h){ if(el._h !== h){ el.innerHTML = h; el._h = h; } }
 function updateQHead(){
   const c = $('cntQ');
+  if(c.textContent !== String(Q.length) && Q.length){ c.classList.remove('pop'); void c.offsetWidth; c.classList.add('pop'); }
   c.textContent = Q.length; c.classList.toggle('dn', Q.length===0);
   const chars = Q.filter(q=>q.content && q.status!=='done').reduce((s,q)=>s+q.content.length, 0);
   $('qSummary').textContent = `기사 ${Q.length}개` + (chars>30 ? ` · 남은 분량 ${calcReadTime(chars, spd).replace('~','약 ')}` : '');
@@ -1635,6 +1700,7 @@ function detectLang(text){
 }
 
 function togglePlay(){
+  haptic(10);
   if(isPaused && wasInterrupted){
     announceAndResume();
   } else if(!isOn){
@@ -1779,7 +1845,9 @@ function updatePlTime(abs){
 function setSpd(v){
   spd = parseFloat(parseFloat(v).toFixed(1));
   TTS.setRate(spd);
-  $('spdVal').textContent = spd.toFixed(1)+'x';
+  const sv = $('spdVal');
+  if(sv.textContent !== spd.toFixed(1)+'x'){ sv.classList.remove('bump'); void sv.offsetWidth; sv.classList.add('bump'); }
+  sv.textContent = spd.toFixed(1)+'x';
   updateSliderTrack();
   try{ localStorage.setItem(LS_SPD, String(spd)); }catch(_){}
   document.querySelectorAll('[data-rt-chars]').forEach(el=>{
@@ -1865,16 +1933,17 @@ document.addEventListener('visibilitychange', ()=>{
   if(document.hidden){
     if(isOn && !isPaused && TTS._usingDevice()){
       if(TTS.useAudio && TTS.preferAudio){
-        // 서버 장애로 잠시 기기 음성을 쓰던 중 → 백그라운드에선 기기 음성이 꺼지므로 서버 음성으로 즉시 복귀
+        // 서버 장애로 잠시 기기 음성을 쓰던 중 → 서버 음성으로 즉시 복귀
         TTS._serverDownUntil = 0; TTS._failCount = 0; TTS._updateBadge();
         TTS.jumpTo(TTS._idx);
-      } else {
-        // 사용자가 기기 음성을 고른 경우: 안드로이드가 음성을 강제 종료 → 복귀 시 안내 후 이어서
-        TTS.pause(); wasInterrupted = true; isPaused = true; updPlayBtn();
       }
+      // 사용자가 고른 기기 음성은 그대로 계속 읽음 (무음 오디오로 앱이 얼지 않게 유지).
+      // 안드로이드가 음성을 끊으면 TTS가 감지해 끊긴 문장부터 서버 음성으로 이어 읽음.
     }
   } else {
     if(isOn) requestWakeLock();
+    // 백그라운드에서 서버 음성으로 이어 읽던 중이면, 지금 문단이 끝나는 대로 원래 고른 기기 음성으로 복귀
+    if(TTS._forceServer && TTS._forceWhy==='bg'){ TTS._forceServer = false; TTS._updateBadge(); }
     if(isPaused && wasInterrupted) showToast('일시정지됐어요', {action:'이어 듣기', ms:5000, onAction:()=>togglePlay()});
     setTimeout(checkClipboard, 350);
   }
@@ -1928,7 +1997,7 @@ function closeOverlayUI(n){
   else { $(n)?.classList.remove('open'); if(n==='inputSheet') _dInputIdx=-1; }
 }
 function openSettings(toVoice){
-  renderThemeGrid(); renderVoices(); updateVoiceLabel();
+  renderVoices(); updateVoiceLabel();
   openSheet('settingsSheet');
   if(toVoice) setTimeout(()=>$('voiceSec').scrollIntoView({behavior:'smooth', block:'start'}), 350);
 }
@@ -2054,6 +2123,8 @@ function toggleSaveItem(idx){
   if(exists){ SAVED=SAVED.filter(s=>s.url!==q.url); showToast('저장을 취소했어요'); }
   else{ SAVED.unshift({id:Date.now(),url:q.url,title:q.title,savedAt:new Date().toLocaleDateString('ko-KR')}); showToast('저장했어요'); }
   saveSavedList(); renderQ(); renderSaved();
+  haptic(10);
+  if(!exists){ const b=document.querySelector(`#qitem-${q.id} [data-a=save]`); if(b){ b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop'); } }
 }
 function renderSaved(){
   $('svEmpty').classList.toggle('dn', SAVED.length>0);
@@ -2100,6 +2171,57 @@ async function doShare(type){
    UI HELPERS
 ══════════════════════ */
 function setProg(v){ $('progFill').style.width = v+'%'; }
+function haptic(ms){ try{ if(navigator.vibrate && navigator.userActivation?.isActive !== false) navigator.vibrate(ms||10); }catch(_){} }
+// 카드를 왼쪽으로 밀어서 삭제
+function attachSwipe(el, id){
+  let sx=0, sy=0, dx=0, w=1, pid=null, tracking=false, decided=false, armed=false;
+  el.addEventListener('pointerdown', e=>{
+    if((e.pointerType==='mouse' && e.button!==0) || e.target.closest('.q-site-wrap')) return;
+    sx=e.clientX; sy=e.clientY; dx=0; w=el.offsetWidth; pid=e.pointerId; tracking=true; decided=false; armed=false;
+  });
+  el.addEventListener('pointermove', e=>{
+    if(!tracking || e.pointerId!==pid) return;
+    const mx=e.clientX-sx, my=e.clientY-sy;
+    if(!decided){
+      if(Math.abs(mx)<10 && Math.abs(my)<10) return;
+      decided = true;
+      if(mx>0 || Math.abs(mx) < Math.abs(my)*1.3){ tracking=false; return; }   // 세로 스크롤·오른쪽은 무시
+      try{ el.setPointerCapture(pid); }catch(_){}
+      el.classList.add('swiping');
+    }
+    dx = Math.min(0, mx);
+    const p = Math.min(1, -dx/(w*0.35));
+    el.style.transform = `translateX(${dx}px)`;
+    el.style.setProperty('--sw', p.toFixed(2));
+    if(p>=1 && !armed){ armed=true; haptic(15); } else if(p<1) armed=false;
+  });
+  const end = e=>{
+    if(!tracking || e.pointerId!==pid) return;
+    tracking = false;
+    if(!decided) return;
+    el._swipedAt = Date.now();
+    el.classList.remove('swiping');
+    if(-dx > w*0.35){
+      el.classList.add('snap'); el.style.transform = `translateX(${-w-90}px)`;
+      setTimeout(()=>removeItem(id), 160);
+    } else {
+      el.classList.add('snap'); el.style.transform=''; el.style.setProperty('--sw',0);
+      setTimeout(()=>el.classList.remove('snap'), 520);
+    }
+  };
+  el.addEventListener('pointerup', end);
+  el.addEventListener('pointercancel', end);
+}
+// 들리지 않는 WAV (16bit, 아주 가끔 1단계 진폭) — 기기 음성 재생 중 앱 유지용
+function silentWav(sec){
+  const sr = 8000, n = sr*sec, buf = new ArrayBuffer(44 + n*2), v = new DataView(buf);
+  const w = (o,str)=>{ for(let i=0;i<str.length;i++) v.setUint8(o+i, str.charCodeAt(i)); };
+  w(0,'RIFF'); v.setUint32(4, 36+n*2, true); w(8,'WAVE'); w(12,'fmt ');
+  v.setUint32(16,16,true); v.setUint16(20,1,true); v.setUint16(22,1,true); v.setUint32(24,sr,true);
+  v.setUint32(28,sr*2,true); v.setUint16(32,2,true); v.setUint16(34,16,true); w(36,'data'); v.setUint32(40,n*2,true);
+  for(let i=0;i<n;i+=97) v.setInt16(44+i*2, (i&1)?1:-1, true);
+  return new Blob([buf], {type:'audio/wav'});
+}
 function showToast(msg, opt){
   opt = opt || {};
   const t = $('toast');
