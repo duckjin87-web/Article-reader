@@ -656,6 +656,7 @@ const TTS = {
   _serverDownUntil: 0, _speechTimer: null,
   _forceServer: false, _forceWhy: '',  // 기기 음성이 끊겨 서버 음성으로 이어 읽는 중 ('bg' | 'broken')
   _devStalls: 0, _stallGuard: -1, _ka: false, _kaUrl: null, _onBuffer: null, _onChunksChanged: null,
+  _deadRun: 0, _splits: 0, _retryTimer: null, _onDead: null, _devDownUntil: 0, _devNoStart: 0, _speechSeq: 0,
   _cps: { audio: 6.5, device: 6.5 },   // 1배속 기준 초당 글자 수 (재생하면서 학습)
 
   async checkAvail(){
@@ -752,6 +753,8 @@ const TTS = {
   _halt(){
     this._gen++;
     clearInterval(this._speechTimer); this._speechTimer = null;
+    clearTimeout(this._retryTimer); this._retryTimer = null;
+    [this._prefetch, this._prefetch2].forEach(x=>{ try{ x && x.ac && x.ac.abort(); }catch(_){} });
     const a = this._el;
     if(a){ a.onended = a.onerror = a.ontimeupdate = null; try{ a.pause(); }catch(_){} }
     try{ if(window.speechSynthesis) speechSynthesis.cancel(); }catch(_){}
@@ -764,7 +767,7 @@ const TTS = {
     const myGen = this._gen;
     await this.checkAvail();
     if(this._gen !== myGen) return;      // 기다리는 사이 다른 기사가 시작됨
-    this._failCount = 0;
+    this._failCount = 0; this._deadRun = 0; this._devStalls = 0; this._splits = 0; this._devNoStart = 0;
     this._chunks = this._split(text);
     this._totalLen = this._chunks.reduce((s,c)=>s+c.length+1, 0) || 1;
     this._lang = lang || 'ko';
@@ -797,6 +800,13 @@ const TTS = {
     const txt = this._chunks[this._idx];
     if(this._onChunkStart) this._onChunkStart(txt);
 
+    // 기기 음성이 고장난 것으로 확인된 동안에는 서버 음성으로, 서버도 안 되면 실패 처리
+    if(this._usingDevice() && Date.now() < this._devDownUntil){
+      if(this.useAudio && Date.now() >= this._serverDownUntil){
+        this._forceServer = true; this._forceWhy = 'broken'; this._updateBadge();
+      } else { this._chunkFailed(txt, myGen); return; }
+    }
+
     if(!this._usingDevice()){
       let blob = null;
       const pf = this._prefetch;
@@ -814,41 +824,84 @@ const TTS = {
         if(this._gen !== myGen) return;
       }
       if(this._paused) return;
-      if(blob){ this._failCount = 0; this._playBlob(blob, txt); return; }
-
-      this._failCount++;
-      const hidden = document.hidden;
-      // 화면에 있을 땐 1번 재시도, 백그라운드에선 최대 6번까지 간격을 늘려 재시도
-      if(hidden ? this._failCount <= 6 : this._failCount < 2){
-        setTimeout(()=>{ if(this._gen === myGen) this._next(); }, hidden ? Math.min(8000, 1000*this._failCount) : 500);
-        return;
-      }
-      if(hidden){ if(this._onStall) this._onStall(); return; }
-      // 화면에 있을 때 계속 실패 → 60초 동안만 기기 음성으로 대체
-      this._serverDownUntil = Date.now() + 60000; this._failCount = 0;
-      this._updateBadge();
-      if(this._onFallback) this._onFallback();
+      if(blob){ this._playBlob(blob, txt); return; }
+      this._chunkFailed(txt, myGen);
+      return;
     }
     if(this._gen !== myGen) return;
     this._playSpeech(txt);
   },
 
-  async _fetchAudio(txt){
+  _advance(txt){
+    this._offset += txt.length + 1; this._idx++; this._next();
+  },
+
+  // 한 문단을 소리 내지 못했을 때 — 어떤 경우에도 그냥 다음 문단으로 넘어가지 않는다
+  _chunkFailed(txt, myGen){
+    if(this._gen !== myGen || !this._playing || this._paused) return;
+    if(this._onBuffer) this._onBuffer(false);
+    const hidden = document.hidden;
+    const retry = ms=>{ clearTimeout(this._retryTimer);
+      this._retryTimer = setTimeout(()=>{ if(this._gen === myGen && this._playing && !this._paused) this._next(); }, ms); };
+
+    if(!this._usingDevice()){
+      this._failCount++;
+      // 같은 문단을 서버에 다시 요청 (백그라운드에선 더 끈질기게)
+      if(hidden ? this._failCount <= 6 : this._failCount <= 2){
+        retry(hidden ? Math.min(8000, 1000*this._failCount) : 700);
+        return;
+      }
+      // 서버가 계속 안 되면 잠시 접어두고 기기 음성으로 이 문단을 읽는다
+      this._failCount = 0; this._forceServer = false;
+      this._serverDownUntil = Date.now() + 60000;
+      this._updateBadge();
+      if(!hidden && window.speechSynthesis && allVoices.length && Date.now() >= this._devDownUntil){
+        if(this._onFallback) this._onFallback();
+        this._playSpeech(txt);
+        return;
+      }
+      if(hidden){ if(this._onStall) this._onStall(); return; }
+    }
+    // 서버도 기기 음성도 안 됨 → 몇 번만 더 시도하고 멈춘다 (무한 반복·탭 강제 종료 방지)
+    this._deadRun++;
+    if(this._deadRun < 3){ retry(1500); return; }
+    this._deadRun = 0; this._failCount = 0;
+    this._paused = true;
+    if(this._onDead) this._onDead();
+  },
+
+  // 응답이 진짜 오디오인지 확인 (오류 페이지를 audio/* 로 받아 조용히 넘어가는 것 방지)
+  async _toAudio(r){
+    const ct = (r.headers.get('content-type')||'').toLowerCase();
+    if(ct && !ct.startsWith('audio/') && !ct.includes('octet-stream')) return null;
+    const buf = await r.arrayBuffer();
+    if(buf.byteLength < 400) return null;
+    const b = new Uint8Array(buf);
+    const ok = (b[0]===0x49 && b[1]===0x44 && b[2]===0x33)                      // ID3
+            || (b[0]===0xFF && (b[1]&0xE0)===0xE0)                              // MPEG
+            || (b[0]===0x52 && b[1]===0x49 && b[2]===0x46 && b[3]===0x46)       // RIFF
+            || (b[0]===0x4F && b[1]===0x67 && b[2]===0x67 && b[3]===0x53)       // OggS
+            || (b[4]===0x66 && b[5]===0x74 && b[6]===0x79 && b[7]===0x70);      // ftyp
+    return ok ? new Blob([buf], {type: ct || 'audio/mpeg'}) : null;
+  },
+
+  async _fetchAudio(txt, signal){
     try{
       const vp = this._voice ? '&voice='+encodeURIComponent(this._voice) : '';
-      const r = await fetch('/api/tts?text='+encodeURIComponent(txt)+'&lang='+this._lang+vp,
-        { signal: AbortSignal.timeout(12000) });
+      const t = AbortSignal.timeout(12000);
+      const sig = signal ? (AbortSignal.any ? AbortSignal.any([signal, t]) : signal) : t;
+      const r = await fetch('/api/tts?text='+encodeURIComponent(txt)+'&lang='+this._lang+vp, { signal: sig });
       if(!r.ok) return null;
       const bk = r.headers.get('x-tts-backend');
       if(bk && bk !== this._backend){ this._backend = bk; this._updateBadge(); }
-      const b = await r.blob();
-      return b.size > 200 ? b : null;
+      return await this._toAudio(r);
     }catch(_){ return null; }
   },
 
   _mkSlot(txt, gen){
-    const s = { txt, gen, blob:null, done:false, promise:null };
-    s.promise = this._fetchAudio(txt).then(b=>{ s.blob = b; s.done = true; return b; });
+    const ac = typeof AbortController === 'function' ? new AbortController() : null;
+    const s = { txt, gen, blob:null, done:false, promise:null, ac };
+    s.promise = this._fetchAudio(txt, ac && ac.signal).then(b=>{ s.blob = b; s.done = true; return b; });
     return s;
   },
   // 다음 1~2개 청크를 미리 받아두어 문단 사이 공백 제거
@@ -873,34 +926,41 @@ const TTS = {
     if(old) setTimeout(()=>URL.revokeObjectURL(old), 1500);
     a.defaultPlaybackRate = this._rate; a.playbackRate = this._rate;
 
+    let heard = false, settled = false;
+    const clear = ()=>{ a.onended = a.onerror = a.ontimeupdate = null; };
+    const fail = ()=>{
+      if(settled || this._gen !== myGen) return;
+      settled = true; clear();
+      this._chunkFailed(txt, myGen);
+    };
+
     a.ontimeupdate = ()=>{
-      if(this._gen !== myGen || !a.duration || !isFinite(a.duration)) return;
+      if(this._gen !== myGen) return;
+      if(a.currentTime > 0.12) heard = true;
+      if(!a.duration || !isFinite(a.duration)) return;
       const ratio = a.currentTime / a.duration;
       this._emit(txt, Math.round(ratio * txt.length), 0);
       if(ratio > 0.25) this._ensurePrefetch(myGen);
     };
-    const advance = ()=>{
-      a.onended = a.onerror = a.ontimeupdate = null;
-      this._offset += txt.length + 1; this._idx++; this._next();
-    };
     a.onended = ()=>{
-      if(this._gen !== myGen) return;
+      if(settled || this._gen !== myGen) return;
+      // 한 번도 소리가 나지 않았는데 끝났다면 재생 실패 → 문단만 넘어가지 않도록 실패로 처리
+      if(!heard && !(a.duration > 0.3)){ fail(); return; }
+      settled = true; clear();
+      this._failCount = 0; this._deadRun = 0; this._devStalls = 0;
       if(isFinite(a.duration)) this._learnCps('audio', txt.length, a.duration);
-      advance();
+      this._advance(txt);
     };
-    a.onerror = ()=>{ if(this._gen === myGen) advance(); };
+    a.onerror = fail;   // 디코딩 실패(오류 페이지를 받은 경우 등)
     if(this._paused) return;   // 일시정지 중이면 resume() 때 재생
     a.play().then(()=>{ if(this._gen === myGen && this._onBuffer) this._onBuffer(false); }).catch(()=>{
-      if(this._gen !== myGen) return;
+      if(settled || this._gen !== myGen) return;
       if(document.hidden){
         setTimeout(()=>{
-          if(this._gen === myGen && !this._paused)
-            a.play().catch(()=>{ if(this._gen === myGen && this._onStall) this._onStall(); });
+          if(settled || this._gen !== myGen || this._paused) return;
+          a.play().catch(fail);
         }, 700);
-      } else {
-        a.onended = a.onerror = a.ontimeupdate = null;
-        this._playSpeech(txt);
-      }
+      } else fail();
     });
   },
 
@@ -911,7 +971,7 @@ const TTS = {
   },
 
   _playSpeech(txt){
-    const myGen = this._gen;
+    const myGen = this._gen, seq = ++this._speechSeq;
     clearInterval(this._speechTimer); this._speechTimer = null;
     const advance = ()=>{
       if(this._gen !== myGen) return;
@@ -941,16 +1001,16 @@ const TTS = {
       }
       // ── 멈춤 감지: 백그라운드에서 안드로이드가 음성을 끊거나, onend가 누락되는 경우
       if(!t0){
-        if(now - tSpeak > (document.hidden ? 4000 : 9000)) this._deviceStalled(txt, 0, myGen);
+        if(now - tSpeak > (document.hidden ? 4000 : 5000)) this._deviceStalled(txt, 0, myGen, true, seq);
         return;
       }
       const ranFor = (now - t0)/1000;
       quiet = speaking ? 0 : quiet + 1;
       if(sawSpeaking && quiet >= 3){
-        if(ranFor >= expect()*0.7) advance();          // 다 읽었는데 onend만 못 받음
-        else this._deviceStalled(txt, lastPos, myGen);  // 중간에 끊김
+        if(ranFor >= expect()*0.7) advance();                    // 다 읽었는데 onend만 못 받음
+        else this._deviceStalled(txt, lastPos, myGen, false, seq); // 중간에 끊김
       } else if(ranFor > expect()*2.5 + 5){
-        if(speaking) this._deviceStalled(txt, lastPos, myGen); else advance();
+        if(speaking) this._deviceStalled(txt, lastPos, myGen, false, seq); else advance();
       }
     };
     this._speechTimer = setInterval(tick, 250);
@@ -968,26 +1028,28 @@ const TTS = {
     u.onend = ()=>{
       if(this._gen !== myGen) return;
       if(t0) this._learnCps('device', txt.length, (performance.now()-t0)/1000 * this._rate);
-      this._devStalls = 0;
+      this._devStalls = 0; this._deadRun = 0; this._failCount = 0;
+      this._devNoStart = 0; this._devDownUntil = 0;
       advance();
     };
     u.onerror = e=>{
       if(this._gen !== myGen) return;
       // 우리가 끊은 경우는 세대(_gen)가 바뀌어 위에서 걸러짐 → 여기 온 '중단'은 시스템이 끊은 것
-      if(e.error==='interrupted' || e.error==='canceled'){ this._deviceStalled(txt, lastPos, myGen); return; }
+      if(e.error==='interrupted' || e.error==='canceled'){ this._deviceStalled(txt, lastPos, myGen, false, seq); return; }
       advance();
     };
     speechSynthesis.speak(u);
   },
 
   // 기기 음성이 중간에 끊김 → 끊긴 문장부터 이어 읽기 (백그라운드면 서버 음성으로 넘겨서)
-  _deviceStalled(txt, pos, myGen){
-    if(this._gen !== myGen || this._paused || this._stallGuard === myGen) return;
-    this._stallGuard = myGen;
+  _deviceStalled(txt, pos, myGen, noStart, seq){
     clearInterval(this._speechTimer); this._speechTimer = null;
+    if(this._gen !== myGen || this._paused) return;
+    if(seq !== undefined && this._stallGuard === seq) return;   // 같은 발화는 한 번만 처리
+    this._stallGuard = seq;
     const k = this._idx;
     let cut = 0;
-    if(pos > 0){
+    if(pos > 0 && this._splits < 12){
       const b = txt.slice(0, pos);
       const m = Math.max(b.lastIndexOf('. '), b.lastIndexOf('? '), b.lastIndexOf('! '));
       cut = m > 0 ? m + 2 : 0;
@@ -996,17 +1058,32 @@ const TTS = {
     if(cut > 0 && cut < txt.length - 5){
       // 이미 읽은 문장은 건너뛰도록 현재 문단을 [읽은 부분, 남은 부분]으로 나눔
       this._chunks.splice(k, 1, txt.slice(0, cut).trim(), txt.slice(cut).trim());
+      this._splits++;
       at = k + 1;
       if(this._onChunksChanged) this._onChunksChanged();
     }
     this._devStalls++;
+    // 두 번 연속 말을 시작조차 못하면 기기 음성이 고장난 것으로 보고 한동안 쓰지 않는다
+    if(noStart){ if(++this._devNoStart >= 2) this._devDownUntil = Date.now() + 60000; }
+    else this._devNoStart = 0;
     const hidden = document.hidden;
-    if(hidden || this._devStalls >= 3){
-      if(this.useAudio){
-        this._forceServer = true; this._forceWhy = hidden ? 'bg' : 'broken'; this._serverDownUntil = 0;
+    // 서버가 방금 실패해 쉬는 중이면 서버로 되돌리지 않는다 (서버↔기기 무한 반복 차단)
+    const serverOk = this.useAudio && Date.now() >= this._serverDownUntil;
+    if(hidden || this._devStalls >= 2){
+      if(serverOk){
+        this._forceServer = true; this._forceWhy = hidden ? 'bg' : 'broken';
         this._updateBadge();
         if(!hidden && this._onFallback) this._onFallback();
-      } else if(hidden){ if(this._onStall) this._onStall(); return; }
+        this.jumpTo(at);
+        return;
+      }
+      if(hidden){ if(this._onStall) this._onStall(); return; }
+      if(this._devStalls >= 2){
+        let off = 0; for(let n=0;n<at;n++) off += this._chunks[n].length + 1;
+        this._idx = at; this._offset = off;
+        this._chunkFailed(this._chunks[at] || txt, myGen);
+        return;
+      }
     }
     this.jumpTo(at);
   },
@@ -1022,6 +1099,11 @@ const TTS = {
   resume(){
     if(!this._playing || !this._paused) return;
     this._paused = false;
+    // 사용자가 직접 다시 재생을 눌렀으면 잠시 접어뒀던 엔진을 모두 다시 열어준다
+    this._serverDownUntil = 0; this._devDownUntil = 0; this._forceServer = false;
+    this._failCount = 0; this._deadRun = 0; this._devStalls = 0; this._devNoStart = 0;
+    if(this.useAudio === false) this._availAt = 0;
+    this._updateBadge();
     const a = this._el;
     if(!this._usingDevice() && a && a.onended && a.src){
       a.play().catch(()=>this.jumpTo(this._idx));
@@ -1076,6 +1158,15 @@ TTS._onFallback = () => showToast(TTS._forceWhy==='broken' && !TTS._usingDevice(
   ? '기기 음성이 자꾸 멈춰서 서버 음성으로 이어 읽어요' : '서버 음성이 불안정해 잠시 기기 음성으로 읽어요');
 TTS._onBuffer = b => $('player').classList.toggle('buffering', !!b && isOn);
 TTS._onChunksChanged = () => { if(viewer.open && viewer.mode==='text') renderViewer(); };
+TTS._onDead = () => {
+  isPaused = true; updPlayBtn();
+  showToast('음성을 재생할 수 없어요. 연결을 확인해 주세요', {action:'다시 시도', ms:8000, onAction:()=>{
+    TTS._serverDownUntil = 0; TTS._failCount = 0; TTS._deadRun = 0; TTS._forceServer = false;
+    TTS._devDownUntil = 0; TTS._devNoStart = 0; TTS._devStalls = 0;
+    TTS.useAudio = null; TTS._availAt = 0;
+    TTS.checkAvail().then(()=>{ if(isPaused) togglePlay(); });
+  }});
+};
 TTS._onStall = () => {
   wasInterrupted = true; isPaused = true; TTS._paused = true;
   updPlayBtn();

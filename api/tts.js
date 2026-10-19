@@ -27,6 +27,19 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: `text too long (max ${maxLen})` });
   }
 
+  // 실제 오디오인지 확인 — 구글 TTS가 차단되면 200 + HTML 오류 페이지를 돌려주는데,
+  // 그대로 audio/mpeg 로 중계하면 앱에서 디코딩에 실패해 문단만 조용히 넘어간다.
+  function looksAudio(buf) {
+    const b = new Uint8Array(buf);
+    if (b.length < 400) return false;
+    if (b[0] === 0x49 && b[1] === 0x44 && b[2] === 0x33) return true;                   // ID3 (mp3)
+    if (b[0] === 0xFF && (b[1] & 0xE0) === 0xE0) return true;                            // MPEG 프레임
+    if (b[0] === 0x52 && b[1] === 0x49 && b[2] === 0x46 && b[3] === 0x46) return true;   // RIFF (wav)
+    if (b[0] === 0x4F && b[1] === 0x67 && b[2] === 0x67 && b[3] === 0x53) return true;   // OggS
+    if (b[4] === 0x66 && b[5] === 0x74 && b[6] === 0x79 && b[7] === 0x70) return true;   // ftyp (m4a)
+    return false;
+  }
+
   function sendAudio(buf, backend) {
     res.setHeader('Content-Type', 'audio/mpeg');
     res.setHeader('X-TTS-Backend', backend);
@@ -55,7 +68,7 @@ export default async function handler(req, res) {
       });
       if (r.ok) {
         const buf = await r.arrayBuffer();
-        if (buf.byteLength > 1000) return sendAudio(buf, 'fish');
+        if (looksAudio(buf)) return sendAudio(buf, 'fish');
       }
     } catch (_) { /* fall through */ }
   }
@@ -84,7 +97,10 @@ export default async function handler(req, res) {
           signal: AbortSignal.timeout(10000),
         }
       );
-      if (r.ok) return sendAudio(await r.arrayBuffer(), 'azure');
+      if (r.ok) {
+        const buf = await r.arrayBuffer();
+        if (looksAudio(buf)) return sendAudio(buf, 'azure');
+      }
     } catch (_) { /* fall through */ }
   }
 
@@ -101,7 +117,10 @@ export default async function handler(req, res) {
         body: JSON.stringify({ model: 'tts-1', input: decoded, voice: oaiVoice, response_format: 'mp3' }),
         signal: AbortSignal.timeout(12000),
       });
-      if (r.ok) return sendAudio(await r.arrayBuffer(), 'openai');
+      if (r.ok) {
+        const buf = await r.arrayBuffer();
+        if (looksAudio(buf)) return sendAudio(buf, 'openai');
+      }
     } catch (_) { /* fall through */ }
   }
 
@@ -118,9 +137,12 @@ export default async function handler(req, res) {
       },
       signal: AbortSignal.timeout(9000),
     });
-    if (!r.ok) return res.status(r.status).send('');
-    return sendAudio(await r.arrayBuffer(), 'google');
+    if (!r.ok) return res.status(502).json({ error: 'tts upstream ' + r.status });
+    const buf = await r.arrayBuffer();
+    // 구글이 차단/속도제한을 걸면 200 으로 HTML 을 돌려준다 → 오디오가 아니면 실패로 알린다
+    if (!looksAudio(buf)) return res.status(502).json({ error: 'tts upstream returned non-audio' });
+    return sendAudio(buf, 'google');
   } catch (e) {
-    return res.status(500).json({ error: e.message });
+    return res.status(502).json({ error: e.message });
   }
 }

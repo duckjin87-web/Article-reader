@@ -1,4 +1,4 @@
-const CACHE = 'article-reader-v11';
+const CACHE = 'article-reader-v12';
 const SHELL = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
