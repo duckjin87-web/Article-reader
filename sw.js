@@ -1,4 +1,6 @@
-const CACHE = 'article-reader-v12';
+const CACHE = 'article-reader-v13';
+// 미리 받아둔 음성 보관함 — 배포할 때마다 지워지면 안 된다
+const KEEP = ['tts-audio-v1'];
 const SHELL = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
@@ -10,7 +12,7 @@ self.addEventListener('install', e => {
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+      Promise.all(keys.filter(k => k !== CACHE && !KEEP.includes(k)).map(k => caches.delete(k)))
     ).then(() => self.clients.claim())
   );
 });
@@ -22,6 +24,7 @@ self.addEventListener('fetch', e => {
   // 외부 API(CORS 프록시, 폰트 등)와 서버 API는 캐시 안함
   if (url.origin !== self.location.origin) return;
   if (url.pathname.startsWith('/api/')) return;
+  if (url.hostname === 'tts-cache.local') return;
 
   // 페이지(HTML)는 네트워크 우선 → 배포하면 바로 최신 버전이 뜨고, 오프라인일 때만 캐시 사용
   // (공유하기로 열린 /?url=... 도 같은 페이지로 처리)

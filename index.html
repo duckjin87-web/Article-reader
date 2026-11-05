@@ -147,6 +147,10 @@ input,textarea{font:inherit}
 .act.on{color:var(--warn)}
 .act.on .ic{fill:currentColor}
 .act-del{flex:0 0 38px;color:var(--text-3)}
+.act-dl{flex:0 0 40px;color:var(--text-3);font-variant-numeric:tabular-nums}
+.act-dl.have{color:var(--ok)}
+.act-dl.run{color:var(--accent);font-size:11px;font-weight:800}
+.st-pre{background:var(--ok-soft);color:var(--ok)}
 .q-site-wrap{display:grid;grid-template-rows:0fr;transition:grid-template-rows .45s var(--ease)}
 .q-site-wrap.open{grid-template-rows:1fr}
 .q-site-wrap>div{overflow:hidden;min-height:0}
@@ -418,6 +422,8 @@ input,textarea{font:inherit}
   <symbol id="i-down" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
   <symbol id="i-doc" viewBox="0 0 24 24"><path d="M14 2.5H6.5a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V8z"/><path d="M14 2.5V8h5.5M15.5 13h-7M15.5 17h-7"/></symbol>
   <symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5"/><path d="M12 7.5v5M12 16.2h.01"/></symbol>
+  <symbol id="i-dl" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="M7.5 10.5L12 15l4.5-4.5"/><path d="M4 20.5h16"/></symbol>
+  <symbol id="i-offline" viewBox="0 0 24 24"><path d="M20.5 12a8.5 8.5 0 1 1-8.5-8.5"/><path d="M8.5 12.2l2.6 2.6 5.4-5.6"/></symbol>
   <symbol id="i-send" viewBox="0 0 24 24"><path d="M21.5 2.5l-9 9M21.5 2.5l-6 19-3.5-8.5-8.5-3.5z"/></symbol>
 </svg>
 
@@ -606,6 +612,7 @@ let vwActive = -1, vwUserScrollAt = 0;
 let readerFs = 17;
 let playerCollapsed = false;
 let posSaveAt = 0, posStateAt = 0;
+let pregenAt = -1, pregenStop = false;   // 미리 받기 상태 (renderQ 가 init 에서 쓰므로 여기서 선언)
 let _dInputIdx = -1;
 
 const LS_Q='arq_v3', LS_SAVED='arq_saved_v1', LS_SPD='arq_spd', LS_VOICE='arq_voice',
@@ -651,7 +658,11 @@ const TTS = {
   _chunks: [], _idx: 0, _offset: 0, _totalLen: 1,
   _playing: false, _paused: false, _audio: null, _el: null, _curUrl: null,
   _onProgress: null, _onDone: null, _onChunkStart: null, _onFallback: null, _onStall: null,
-  _rate: 1.0, _lang: 'ko', _gen: 0, _prefetch: null, _prefetch2: null,
+  _rate: 1.0, _lang: 'ko', _gen: 0,
+  _buf: new Map(),          // 문단번호 → 선행 다운로드 슬롯 (앞으로 여러 개 미리 받아둠)
+  _bufAhead: 6,             // 몇 문단 앞까지 받아둘지 (약 40초 분량)
+  _cache: null, _cachePuts: 0,
+  _net: { active: 0, last: 0, max: 2, gap: 130 },   // 동시 2개·130ms 간격 → 차단 덜 당함
   preferAudio: true, _failCount: 0, _backend: null, _voice: null,
   _serverDownUntil: 0, _speechTimer: null,
   _forceServer: false, _forceWhy: '',  // 기기 음성이 끊겨 서버 음성으로 이어 읽는 중 ('bg' | 'broken')
@@ -727,6 +738,60 @@ const TTS = {
     try{ localStorage.setItem(LS_CPS, JSON.stringify(this._cps)); }catch(_){}
   },
 
+  // ── 오디오 캐시: 한 번 받은 문단은 다시 받지 않는다 (앱을 껐다 켜도 남음)
+  async _cacheOpen(){
+    if(this._cache !== null) return this._cache;
+    try{ this._cache = (typeof caches !== 'undefined') ? await caches.open('tts-audio-v1') : false; }
+    catch(_){ this._cache = false; }
+    return this._cache;
+  },
+  _cacheKey(txt, lang, voice){
+    return 'https://tts-cache.local/v1/' + encodeURIComponent(this._backend || 'x')
+      + '/' + encodeURIComponent(lang || this._lang)
+      + '/' + encodeURIComponent(voice || '-')
+      + '/' + encodeURIComponent(txt);
+  },
+  async _cacheGet(txt, lang, voice){
+    const c = await this._cacheOpen(); if(!c) return null;
+    try{
+      const r = await c.match(this._cacheKey(txt, lang, voice));
+      return r ? await this._toAudio(r) : null;
+    }catch(_){ return null; }
+  },
+  async _cachePut(txt, blob, lang, voice){
+    const c = await this._cacheOpen(); if(!c || !blob) return;
+    try{
+      await c.put(this._cacheKey(txt, lang, voice),
+        new Response(blob, { headers: { 'Content-Type': blob.type || 'audio/mpeg' } }));
+      if(++this._cachePuts % 40 === 0) this._cacheTrim(c);
+    }catch(_){}
+  },
+  async _cacheTrim(c){
+    try{
+      const keys = await c.keys();
+      if(keys.length > 1500) for(const k of keys.slice(0, keys.length - 1200)) await c.delete(k);
+    }catch(_){}
+  },
+  async cachedCount(chunks, lang, voice){
+    const c = await this._cacheOpen(); if(!c) return 0;
+    let n = 0;
+    for(const t of chunks){
+      try{ if(await c.match(this._cacheKey(t, lang, voice))) n++; }catch(_){}
+    }
+    return n;
+  },
+
+  // ── 요청 조절: 한꺼번에 몰아 보내면 무료 구글 TTS가 차단한다
+  async _netSlot(urgent){
+    if(urgent) { this._net.active++; this._net.last = Date.now(); return; }
+    let guard = 0;
+    while(this._net.active >= this._net.max && guard++ < 200) await new Promise(r=>setTimeout(r, 60));
+    const wait = this._net.gap - (Date.now() - this._net.last);
+    if(wait > 0) await new Promise(r=>setTimeout(r, wait));
+    this._net.active++; this._net.last = Date.now();
+  },
+  _netDone(){ if(this._net.active > 0) this._net.active--; },
+
   _getEl(){
     if(!this._el){ this._el = $('ttsAudio') || new Audio(); this._el.preload = 'auto'; }
     return this._el;
@@ -754,11 +819,10 @@ const TTS = {
     this._gen++;
     clearInterval(this._speechTimer); this._speechTimer = null;
     clearTimeout(this._retryTimer); this._retryTimer = null;
-    [this._prefetch, this._prefetch2].forEach(x=>{ try{ x && x.ac && x.ac.abort(); }catch(_){} });
+    this._bufClear();
     const a = this._el;
     if(a){ a.onended = a.onerror = a.ontimeupdate = null; try{ a.pause(); }catch(_){} }
     try{ if(window.speechSynthesis) speechSynthesis.cancel(); }catch(_){}
-    this._prefetch = null; this._prefetch2 = null;
     if(this._onBuffer) this._onBuffer(false);
   },
 
@@ -809,18 +873,18 @@ const TTS = {
 
     if(!this._usingDevice()){
       let blob = null;
-      const pf = this._prefetch;
-      if(this._onBuffer && !(pf && pf.done && pf.txt === txt && pf.blob)) this._onBuffer(true);
-      if(pf && pf.gen === myGen && pf.txt === txt){
-        blob = pf.done ? pf.blob : await pf.promise;
+      const slot = this._buf.get(this._idx);
+      const ready = slot && slot.gen === myGen && slot.txt === txt && slot.done && slot.blob;
+      if(this._onBuffer && !ready) this._onBuffer(true);
+      if(slot && slot.gen === myGen && slot.txt === txt){
+        blob = slot.done ? slot.blob : await slot.promise;
+        this._buf.delete(this._idx);
         if(this._gen !== myGen) return;
-        this._prefetch = (this._prefetch2 && this._prefetch2.gen === myGen) ? this._prefetch2 : null;
-        this._prefetch2 = null;
-      } else if(pf){
-        this._prefetch = null; this._prefetch2 = null;   // 순서가 어긋난 선행 요청은 버림
+      } else if(slot){
+        this._buf.delete(this._idx);
       }
       if(!blob){
-        blob = await this._fetchAudio(txt);
+        blob = await this._fetchAudio(txt, null, { urgent:true });
         if(this._gen !== myGen) return;
       }
       if(this._paused) return;
@@ -885,17 +949,26 @@ const TTS = {
     return ok ? new Blob([buf], {type: ct || 'audio/mpeg'}) : null;
   },
 
-  async _fetchAudio(txt, signal){
+  async _fetchAudio(txt, signal, o){
+    o = o || {};
+    const lang  = o.lang || this._lang;
+    const voice = o.voice !== undefined ? o.voice : this._voice;
+    const hit = await this._cacheGet(txt, lang, voice);
+    if(hit) return hit;                       // 이미 받아둔 문단 → 네트워크 안 씀
+    await this._netSlot(o.urgent);
     try{
-      const vp = this._voice ? '&voice='+encodeURIComponent(this._voice) : '';
-      const t = AbortSignal.timeout(12000);
+      const vp = voice ? '&voice='+encodeURIComponent(voice) : '';
+      const t = AbortSignal.timeout(15000);
       const sig = signal ? (AbortSignal.any ? AbortSignal.any([signal, t]) : signal) : t;
-      const r = await fetch('/api/tts?text='+encodeURIComponent(txt)+'&lang='+this._lang+vp, { signal: sig });
+      const r = await fetch('/api/tts?text='+encodeURIComponent(txt)+'&lang='+lang+vp, { signal: sig });
       if(!r.ok) return null;
       const bk = r.headers.get('x-tts-backend');
       if(bk && bk !== this._backend){ this._backend = bk; this._updateBadge(); }
-      return await this._toAudio(r);
+      const blob = await this._toAudio(r);
+      if(blob) this._cachePut(txt, blob, lang, voice);
+      return blob;
     }catch(_){ return null; }
+    finally{ this._netDone(); }
   },
 
   _mkSlot(txt, gen){
@@ -904,14 +977,49 @@ const TTS = {
     s.promise = this._fetchAudio(txt, ac && ac.signal).then(b=>{ s.blob = b; s.done = true; return b; });
     return s;
   },
-  // 다음 1~2개 청크를 미리 받아두어 문단 사이 공백 제거
-  _ensurePrefetch(myGen){
-    const t1 = this._chunks[this._idx+1];
-    if(!t1) return;
-    if(!this._prefetch || this._prefetch.gen !== myGen) this._prefetch = this._mkSlot(t1, myGen);
-    const t2 = this._chunks[this._idx+2];
-    if(t2 && this._prefetch.done && this._prefetch.txt === t1 && (!this._prefetch2 || this._prefetch2.gen !== myGen))
-      this._prefetch2 = this._mkSlot(t2, myGen);
+  _bufClear(){
+    for(const s of this._buf.values()){ try{ s.ac && s.ac.abort(); }catch(_){} }
+    this._buf.clear();
+  },
+  // 앞쪽 문단을 여러 개 미리 받아둔다 → 중간에 잠깐 끊겨도 재생이 안 멈춘다
+  _ensureBuffer(myGen){
+    if(this._gen !== myGen || this._usingDevice()) return;
+    for(const [i, s] of this._buf){
+      if(i <= this._idx || s.gen !== myGen){ try{ s.ac && s.ac.abort(); }catch(_){} this._buf.delete(i); }
+    }
+    let pending = 0;
+    for(const s of this._buf.values()) if(!s.done) pending++;
+    const end = Math.min(this._chunks.length, this._idx + 1 + this._bufAhead);
+    for(let i = this._idx + 1; i < end; i++){
+      if(this._buf.has(i)) continue;
+      if(pending >= this._net.max) break;
+      this._buf.set(i, this._mkSlot(this._chunks[i], myGen));
+      pending++;
+    }
+  },
+  bufferedAhead(){
+    let n = 0;
+    for(let i = this._idx + 1; ; i++){
+      const s = this._buf.get(i);
+      if(s && s.done && s.blob) n++; else break;
+    }
+    return n;
+  },
+
+  // 기사 전체를 미리 받아 캐시에 저장 (주차 중·와이파이에서 받아두면 운전 중 네트워크가 필요 없다)
+  async pregen(text, lang, onProgress, shouldStop){
+    await this.checkAvail();
+    if(!this.useAudio) return { ok:0, total:0, failed:true };
+    const chunks = this._split(text);
+    const voice = this._voice;
+    let ok = 0;
+    for(let i = 0; i < chunks.length; i++){
+      if(shouldStop && shouldStop()) break;
+      const b = await this._fetchAudio(chunks[i], null, { lang, voice });
+      if(b) ok++;
+      if(onProgress) onProgress(i + 1, chunks.length, ok);
+    }
+    return { ok, total: chunks.length };
   },
 
   _playBlob(blob, txt){
@@ -940,7 +1048,7 @@ const TTS = {
       if(!a.duration || !isFinite(a.duration)) return;
       const ratio = a.currentTime / a.duration;
       this._emit(txt, Math.round(ratio * txt.length), 0);
-      if(ratio > 0.25) this._ensurePrefetch(myGen);
+      if(ratio > 0.2) this._ensureBuffer(myGen);
     };
     a.onended = ()=>{
       if(settled || this._gen !== myGen) return;
@@ -1108,12 +1216,10 @@ const TTS = {
     if(!this._usingDevice() && a && a.onended && a.src){
       a.play().catch(()=>this.jumpTo(this._idx));
     } else {
-      // 불러둔 청크가 없으면(요청 대기 중 일시정지 등) 현재 문단부터 다시
-      const keep = [this._prefetch, this._prefetch2];
+      // 불러둔 문단이 없으면(요청 대기 중 일시정지 등) 현재 문단부터 다시
+      const keep = [...this._buf.entries()];
       this._halt();
-      [this._prefetch, this._prefetch2] = keep;
-      if(this._prefetch) this._prefetch.gen = this._gen;
-      if(this._prefetch2) this._prefetch2.gen = this._gen;
+      for(const [i, sl] of keep){ sl.gen = this._gen; this._buf.set(i, sl); }
       this._next();
     }
   },
@@ -1127,6 +1233,7 @@ const TTS = {
     }
     this._audio = null;
     this._chunks = []; this._idx = 0; this._offset = 0; this._failCount = 0;
+    this._bufClear();
   },
   setRate(v){
     this._rate = v;
@@ -1363,6 +1470,7 @@ function pickVoice(name){
   TTS._serverDownUntil = 0; TTS._forceServer = false; TTS._devStalls = 0;
   saveVoicePref();
   TTS._updateBadge();
+  renderQ();   // 목소리가 바뀌면 '받아둠' 표시도 달라진다
   // 처음부터가 아니라 지금 읽던 문단부터 새 목소리로
   if(isOn && !isPaused) TTS.jumpTo(TTS._idx);
 }
@@ -1639,7 +1747,8 @@ function renderQ(){
 function mainHtml(q, i, active){
   const lead = active ? `<span class="eq${isPaused?' paused':''}"><i></i><i></i><i></i></span>`
              : q.status==='loading' ? '<span class="spin"></span>' : String(i+1);
-  const [stTxt, stCls] = active ? [isPaused?'일시정지':'재생 중','st-play'] : (ST[q.status]||ST.pending);
+  let [stTxt, stCls] = active ? [isPaused?'일시정지':'재생 중','st-play'] : (ST[q.status]||ST.pending);
+  if(!active && q.status==='ready' && q.cachedFor === cacheTag()){ stTxt='받아둠'; stCls='st-pre'; }
   const rt = q.content && q.content.length>30
     ? `<span class="dot">·</span><span class="rt" data-rt-chars="${q.content.length}">${calcReadTime(q.content.length, spd)}</span>` : '';
   return `<div class="q-lead">${lead}</div>
@@ -1657,7 +1766,19 @@ function actsHtml(q, i){
       ? `<button class="act" onclick="openDInput(${i})">${ic('edit')}<span>직접 입력</span></button>`
       : `<button class="act${saved?' on':''}" data-a="save" onclick="toggleSaveItem(${i})">${ic('star')}<span>${saved?'저장됨':'저장'}</span></button>`}
     <button class="act" onclick="openShareIdx(${i})">${ic('share')}<span>공유</span></button>
+    ${dlBtn(q, i)}
     <button class="act act-del" onclick="removeItem(${q.id})" aria-label="삭제">${ic('x')}</button>`;
+}
+function cacheTag(){ return (TTS._backend||'') + '/' + (TTS._voice||'-'); }
+function dlBtn(q, i){
+  if(!q.content) return '';
+  if(pregenAt === i){
+    const pc = q.pre && q.pre.total ? Math.round(q.pre.n / q.pre.total * 100) : 0;
+    return `<button class="act act-dl run" onclick="pregenArticle(${i})" aria-label="미리 받기 중단">${pc}%</button>`;
+  }
+  const done = q.cachedFor === cacheTag();
+  return `<button class="act act-dl${done?' have':''}" onclick="pregenArticle(${i})"
+    aria-label="${done?'받아둠':'미리 받기'}" title="${done?'받아둠 — 끊김 없이 재생':'미리 받기'}">${ic(done?'offline':'dl')}</button>`;
 }
 function setHtml(el, h){ if(el._h !== h){ el.innerHTML = h; el._h = h; } }
 function updateQHead(){
@@ -1748,6 +1869,38 @@ async function loadAndPlay(startIdx){
 }
 
 /* ══════════════════════
+   미리 받기 (출발 전에 기사 전체를 받아두면 운전 중 네트워크가 필요 없다)
+══════════════════════ */
+async function pregenArticle(i){
+  const q = Q[i];
+  if(!q || !q.content){ showToast('본문을 먼저 불러와 주세요'); return; }
+  if(pregenAt === i){ pregenStop = true; showToast('미리 받기를 멈출게요'); return; }
+  if(pregenAt >= 0){ showToast('다른 기사를 받고 있어요. 끝나면 눌러주세요'); return; }
+  if(q.cachedFor === cacheTag()){ showToast('이미 다 받아둔 기사예요'); return; }
+
+  pregenAt = i; pregenStop = false;
+  q.pre = { n:0, total:0 };
+  renderQ();
+  const id = q.id;
+  const r = await TTS.pregen(
+    q.title + '. ' + q.content,
+    detectLang(q.content),
+    (n, total)=>{ const cur = Q.find(x=>x.id===id); if(cur){ cur.pre = {n, total}; renderQ(); } },
+    ()=> pregenStop || !Q.some(x=>x.id===id)
+  );
+  pregenAt = -1;
+  const cur = Q.find(x=>x.id===id);
+  if(cur) cur.pre = null;
+  if(r.failed) showToast('서버 음성을 쓸 수 없어 미리 받기를 못 했어요');
+  else if(pregenStop) showToast('미리 받기를 멈췄어요');
+  else if(cur && r.total && r.ok === r.total){
+    cur.cachedFor = cacheTag();
+    showToast('다 받았어요. 이제 끊김 없이 들을 수 있어요');
+  } else showToast(`${r.ok}/${r.total} 문단만 받았어요. 연결을 확인하고 다시 눌러주세요`);
+  saveQ(); renderQ();
+}
+
+/* ══════════════════════
    PLAYBACK
 ══════════════════════ */
 function playAt(idx, autoNext){
@@ -1819,7 +1972,7 @@ async function announceAndResume(){
   const go = ()=>{ if(done) return; done = true; TTS._paused = false; TTS.jumpTo(TTS._idx); };
   const msg = '이어서 읽어드릴게요';
   if(!TTS._usingDevice()){
-    const blob = await TTS._fetchAudio(msg);
+    const blob = await TTS._fetchAudio(msg, null, { urgent:true });
     if(blob){
       const a = TTS._getEl(), u = URL.createObjectURL(blob);
       TTS._halt();
