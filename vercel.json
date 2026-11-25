@@ -5,6 +5,9 @@
     },
     "api/summarize.js": {
       "maxDuration": 60
+    },
+    "api/feeds.js": {
+      "maxDuration": 30
     }
   }
 }
