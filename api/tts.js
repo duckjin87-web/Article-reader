@@ -10,9 +10,9 @@ export default async function handler(req, res) {
   const { text, lang = 'ko', voice } = req.query;
   if (!text) return res.status(400).send('');
 
-  let decoded;
-  try { decoded = decodeURIComponent(text); }
-  catch { return res.status(400).send(''); }
+  // Vercel 은 쿼리스트링을 이미 디코딩해서 준다. 여기서 한 번 더 decodeURIComponent 하면
+  // '32%' 처럼 % 가 들어간 문장이 URIError 로 400 이 되어 그 문단 음성이 실패했다.
+  const decoded = String(text);
 
   const FISH_KEY     = process.env.FISH_API_KEY;
   const FISH_VOICE   = process.env.FISH_VOICE_ID;          // fish.audio 마켓에서 고른 목소리 ID

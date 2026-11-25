@@ -219,6 +219,67 @@ input,textarea{font:inherit}
 .sv-item{padding:14px 14px 6px;animation:cardIn .5s var(--spring) both}
 .sv-title{font-size:var(--fs-title);font-weight:700;line-height:1.4;word-break:keep-all;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 
+/* ═════════ 브리핑 ═════════ */
+.br-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:6px 2px 14px}
+.br-title{font-size:22px;font-weight:800;letter-spacing:-.4px}
+.br-sub{font-size:13px;color:var(--text-3);margin-top:4px;line-height:1.45}
+.br-engine{flex-shrink:0;margin-top:4px;padding:3px 9px;border-radius:999px;font-size:11.5px;font-weight:800;background:var(--surface-2);color:var(--text-2)}
+.br-engine.ai{background:var(--accent-soft);color:var(--accent)}
+.br-all{width:100%;height:54px;border-radius:16px;margin-bottom:14px;display:flex;align-items:center;justify-content:center;gap:8px;
+  background:var(--accent-grad);color:var(--on-accent);font-size:15.5px;font-weight:800;box-shadow:var(--shadow-play);transition:transform .15s var(--ease)}
+.br-all:active{transform:scale(.97)}
+.br-all .ic{width:20px;height:20px}
+.rec{padding:12px 14px;margin-bottom:16px}
+.rec-h{font-size:13.5px;font-weight:800;color:var(--text-2);margin:2px 0 4px;display:flex;align-items:center;gap:6px}
+.rec-h .ic{width:16px;height:16px;color:var(--accent)}
+.rec-item{width:100%;display:flex;align-items:center;gap:10px;padding:11px 0;text-align:left;border-top:1px solid var(--border)}
+.rec-item:nth-child(2){border-top:0}
+.rec-item:active{opacity:.7}
+.rec-t{width:100%;font-size:14.5px;font-weight:700;line-height:1.4;word-break:keep-all;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.rec-play{width:36px;height:36px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent)}
+.rec-play .ic{width:16px;height:16px}
+.chips{display:flex;gap:6px;overflow-x:auto;margin:0 -16px;padding:2px 16px 4px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip-f{flex-shrink:0;height:36px;padding:0 14px;border-radius:999px;font-size:13.5px;font-weight:700;display:flex;align-items:center;gap:6px;
+  background:var(--surface);border:1px solid var(--border);color:var(--text-2);transition:background .25s,color .25s,transform .15s}
+.chip-f:active{transform:scale(.95)}
+.chip-f.on{background:var(--text);color:var(--bg);border-color:transparent}
+.chip-f .n{font-size:12px;opacity:.65;font-variant-numeric:tabular-nums}
+.chip-f .cat-dot{width:8px;height:8px}
+.cat-sec{display:flex;align-items:center;gap:8px;margin:20px 2px 10px}
+.cat-sec b{font-size:16.5px;font-weight:800;letter-spacing:-.2px}
+.cat-sec .n{font-size:13px;color:var(--text-3);font-weight:700}
+.cat-sec .text-btn{margin-left:auto}
+.cat-dot{width:10px;height:10px;flex-shrink:0;border-radius:50%;background:var(--c)}
+.cat-tag{flex-shrink:0;padding:3px 9px;border-radius:999px;font-size:12px;font-weight:800;white-space:nowrap;color:var(--c);
+  background:color-mix(in srgb,var(--c) 14%,transparent)}
+.cat-tag.xs{padding:1px 7px;font-size:11px}
+button.cat-tag{display:inline-flex;align-items:center;gap:3px}
+button.cat-tag .ic{width:12px;height:12px}
+.bcard{padding:14px 14px 6px;margin-bottom:10px}
+.br-anim .bcard,.br-anim .rec,.br-anim .br-all{animation:cardIn .5s var(--spring) both}
+.bc-top{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--text-3);min-width:0}
+.bc-top .q-host{flex:1}
+.bc-top .heard{font-weight:700;white-space:nowrap}
+.bc-title{margin-top:9px;font-size:var(--fs-title);font-weight:800;line-height:1.42;word-break:keep-all;overflow-wrap:anywhere;cursor:pointer}
+.bc-head{margin-top:5px;font-size:13.5px;font-weight:700;color:var(--c,var(--accent));line-height:1.45;word-break:keep-all}
+.bc-sum{list-style:none;margin-top:10px;display:flex;flex-direction:column;gap:7px}
+.bc-sum li{position:relative;padding-left:14px;font-size:14px;line-height:1.62;color:var(--text-2);word-break:keep-all;overflow-wrap:anywhere}
+.bc-sum li::before{content:'';position:absolute;left:2px;top:.7em;width:5px;height:5px;border-radius:50%;background:var(--c,var(--accent))}
+.bc-kw{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
+.bc-kw span{font-size:12px;font-weight:600;color:var(--text-3);background:var(--surface-2);padding:3px 8px;border-radius:8px}
+.bc-wait{margin-top:12px;font-size:13px;color:var(--text-3);display:flex;align-items:center;gap:8px}
+.bcard .q-acts{margin-top:12px}
+.cat-opts{display:flex;flex-direction:column;gap:6px;margin:6px 0 4px}
+.cat-opt{display:flex;align-items:center;gap:10px;padding:15px 14px;border-radius:14px;background:var(--surface-2);font-size:15px;font-weight:700;text-align:left;transition:transform .15s}
+.cat-opt:active{transform:scale(.98)}
+.cat-opt small{font-size:12.5px;font-weight:600;color:var(--text-3)}
+.cat-opt>.ic{margin-left:auto;color:var(--accent)}
+.seg3 button{font-size:14px;gap:5px;white-space:nowrap}
+/* 탭이 3개라 폰 폭에서는 아이콘을 빼고 글자만 (줄바꿈 방지) */
+@media (max-width:440px){ #tabSeg button .ic{display:none} #tabSeg button{font-size:14.5px} }
+.rec-col{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:5px}
+
 /* ═════════ PLAYER ═════════ */
 .player{position:fixed;left:0;right:0;bottom:0;z-index:200;padding:0 16px calc(12px + env(safe-area-inset-bottom,0px));
   background:var(--player-bg);-webkit-backdrop-filter:saturate(180%) blur(22px);backdrop-filter:saturate(180%) blur(22px);
@@ -464,13 +525,15 @@ input,textarea{font:inherit}
   <symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5"/><path d="M12 7.5v5M12 16.2h.01"/></symbol>
   <symbol id="i-dl" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="M7.5 10.5L12 15l4.5-4.5"/><path d="M4 20.5h16"/></symbol>
   <symbol id="i-offline" viewBox="0 0 24 24"><path d="M20.5 12a8.5 8.5 0 1 1-8.5-8.5"/><path d="M8.5 12.2l2.6 2.6 5.4-5.6"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="M11 3.5l1.9 4.9 4.9 1.9-4.9 1.9L11 17.1l-1.9-4.9L4.2 10.3l4.9-1.9z"/><path d="M18.5 14.5l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></symbol>
   <symbol id="i-send" viewBox="0 0 24 24"><path d="M21.5 2.5l-9 9M21.5 2.5l-6 19-3.5-8.5-8.5-3.5z"/></symbol>
 </svg>
 
 <header class="topbar">
-  <div class="seg" id="tabSeg" data-i="0">
+  <div class="seg seg3" id="tabSeg" data-i="0">
     <div class="seg-ind"></div>
     <button class="on" id="tabBtnQ" onclick="switchTab('queue')"><svg class="ic"><use href="#i-list"/></svg>재생목록<span class="cnt dn" id="cntQ"></span></button>
+    <button id="tabBtnB" onclick="switchTab('brief')"><svg class="ic"><use href="#i-spark"/></svg>브리핑</button>
     <button id="tabBtnS" onclick="switchTab('saved')"><svg class="ic"><use href="#i-star"/></svg>저장됨</button>
   </div>
   <button class="icon-btn" onclick="openSettings()" aria-label="설정"><svg class="ic"><use href="#i-settings"/></svg></button>
@@ -517,6 +580,20 @@ input,textarea{font:inherit}
     </section>
 
     <!-- ═══ 저장됨 탭 ═══ -->
+    <!-- ═══ 브리핑 탭: 추천 · 분야별 요약 ═══ -->
+    <section class="tab-pane dn" id="tabBrief">
+      <div class="br-head">
+        <div><h2 class="br-title">오늘의 브리핑</h2><p class="br-sub" id="brSub"></p></div>
+        <span class="br-engine" id="brEngine"></span>
+      </div>
+      <div class="empty dn" id="brEmpty">
+        <div class="empty-ic"><svg class="ic"><use href="#i-spark"/></svg></div>
+        <h3>정리할 기사가 아직 없어요</h3>
+        <p>재생목록에 기사를 넣으면 핵심만 요약해서<br><b>사회·시사 · AI · 뷰티트렌드</b> 로 나눠 정리해 드려요</p>
+      </div>
+      <div id="brBody"></div>
+    </section>
+
     <section class="tab-pane dn" id="tabSaved">
       <div class="empty dn" id="svEmpty">
         <div class="empty-ic"><svg class="ic"><use href="#i-star"/></svg></div>
@@ -635,6 +712,16 @@ input,textarea{font:inherit}
   </div>
 </div>
 
+<!-- ═══ 분야 바꾸기 ═══ -->
+<div class="sheet-wrap" id="catSheet" onclick="if(event.target===this)closeOv('catSheet')">
+  <div class="sheet">
+    <div class="grab"></div>
+    <h2>분야 바꾸기</h2>
+    <div class="sub" id="catSheetTitle"></div>
+    <div class="cat-opts" id="catOpts"></div>
+  </div>
+</div>
+
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
@@ -660,6 +747,16 @@ let readerFs = 17;
 let playerCollapsed = false;
 let posSaveAt = 0, posStateAt = 0;
 let pregenAt = -1, pregenStop = false;   // 미리 받기 상태 (renderQ 가 init 에서 쓰므로 여기서 선언)
+// 브리핑 (요약·분야 분류) — renderQ 가 init 에서 분야 표시를 쓰므로 여기서 선언
+const CATS = {
+  society:{ name:'사회·시사',  color:'#F2643D' },
+  ai:     { name:'AI',         color:'#7B61FF' },
+  beauty: { name:'뷰티트렌드', color:'#E8509A' },
+  other:  { name:'기타',       color:'#8B95A1' },
+};
+const CAT_ORDER = ['society','ai','beauty','other'];
+const SUM_VER = 1;
+let brFilter = 'all', aiSumAvail = null, sumBusy = false, brRaf = 0, catTarget = null;
 let _dInputIdx = -1;
 
 const LS_Q='arq_v3', LS_SAVED='arq_saved_v1', LS_SPD='arq_spd', LS_VOICE='arq_voice',
@@ -1422,6 +1519,7 @@ TTS._onStall = () => {
 
   TTS.checkAvail();
   bgLoad();
+  setTimeout(summarizeAll, 1200);   // 예전에 넣어둔 기사도 요약
 })();
 
 function langIs(v, code){
@@ -1480,18 +1578,27 @@ try{
 /* ══════════════════════
    TABS
 ══════════════════════ */
+const TABS = ['queue','brief','saved'];
+const TAB_EL = { queue:['tabQueue','tabBtnQ'], brief:['tabBrief','tabBtnB'], saved:['tabSaved','tabBtnS'] };
 function switchTab(tab){
-  if(activeTab === tab) return;
+  if(activeTab === tab || !TAB_EL[tab]) return;
+  const from = TABS.indexOf(activeTab), to = TABS.indexOf(tab);
   activeTab = tab;
-  $('tabSeg').dataset.i = tab==='saved' ? 1 : 0;
-  $('tabBtnQ').classList.toggle('on', tab==='queue');
-  $('tabBtnS').classList.toggle('on', tab==='saved');
-  const show_ = tab==='queue' ? 'tabQueue' : 'tabSaved', hide_ = tab==='queue' ? 'tabSaved' : 'tabQueue';
-  hide(hide_); $(hide_).classList.remove('in-l','in-r');
-  show(show_); const el=$(show_); el.classList.remove('in-l','in-r'); void el.offsetWidth; el.classList.add(tab==='saved'?'in-r':'in-l');
+  $('tabSeg').dataset.i = to;
+  TABS.forEach(t=>{
+    const [pane, btn] = TAB_EL[t];
+    $(btn).classList.toggle('on', t===tab);
+    if(t!==tab){ hide(pane); $(pane).classList.remove('in-l','in-r'); }
+  });
+  const el = $(TAB_EL[tab][0]);
+  show(TAB_EL[tab][0]); void el.offsetWidth; el.classList.add(to>from ? 'in-r' : 'in-l');
   haptic(6);
   $('urlArea').style.display = tab==='queue' ? '' : 'none';
   $('content').scrollTop = 0;
+  if(tab==='brief'){
+    el.classList.add('br-anim'); setTimeout(()=>el.classList.remove('br-anim'), 900);
+    renderBrief(); summarizeAll();
+  }
 }
 
 /* ══════════════════════
@@ -1786,6 +1893,7 @@ function playAll(){
 
 // 카드 단위로 바뀐 부분만 갱신 → 열려 있는 사이트 미리보기(iframe)가 매번 새로고침되지 않음
 function renderQ(){
+  if(activeTab==='brief' && !brRaf) brRaf = requestAnimationFrame(()=>{ brRaf = 0; renderBrief(); });
   const list = $('qList');
   $('qEmpty').classList.toggle('dn', Q.length>0);
   $('qHead').classList.toggle('dn', Q.length===0);
@@ -1834,11 +1942,16 @@ function mainHtml(q, i, active){
   return `<div class="q-lead">${lead}</div>
     <div class="q-info">
       <div class="q-title">${esc(q.title)}</div>
-      <div class="q-meta"><span class="q-host">${esc(shortHost(q.url))}</span>${rt}<span class="chip ${stCls}">${stTxt}</span></div>
+      <div class="q-meta">${catTagHtml(q,'xs')}<span class="q-host">${esc(q.kind==='brief' ? '요약 브리핑' : shortHost(q.url))}</span>${rt}<span class="chip ${stCls}">${stTxt}</span></div>
       ${q.status==='error' ? `<div class="q-err">${esc((q.err||'').split('\n')[0])}</div>` : ''}
     </div>`;
 }
 function actsHtml(q, i){
+  if(q.kind==='brief'){
+    return `<button class="act" onclick="openViewer(${i},'text')">${ic('maximize')}<span>크게 보기</span></button>
+      ${dlBtn(q, i)}
+      <button class="act act-del" onclick="removeItem(${q.id})" aria-label="삭제">${ic('x')}</button>`;
+  }
   const saved = SAVED.some(s=>s.url===q.url), open = openSites.has(q.id);
   return `<button class="act${open?' open':''}" onclick="toggleSite(${q.id})">${ic('globe')}<span>${open?'닫기':'사이트'}</span></button>
     <button class="act" onclick="openViewer(${i})">${ic('maximize')}<span>크게 보기</span></button>
@@ -1908,6 +2021,7 @@ function loadItem(i){
     inflight.delete(q.id);
     renderQ(); saveQ();
     if(viewer.open && viewer.id===q.id){ $('vwTitle').textContent = q.title; renderViewer(); }
+    if(q.status==='ready') summarizeAll();
     return q.status==='ready';
   })();
   inflight.set(q.id, p);
@@ -1946,6 +2060,290 @@ async function loadAndPlay(startIdx){
   if(!started && !isOn && Q.some(q=>q.id===startId)){
     showErr('불러올 수 있는 기사가 없어요.\n차단됐거나 로그인이 필요한 사이트일 수 있어요.');
   }
+}
+
+/* ══════════════════════
+   브리핑: 기사 핵심 요약 · 분야 분류 · 추천 · 음성 브리핑
+   기본은 기기 안에서 무료로 핵심 문장을 뽑는다(인터넷·비용 없음).
+   서버에 ANTHROPIC_API_KEY 가 있으면 Claude 가 요약·분류한다(/api/summarize).
+══════════════════════ */
+// 분야별 단서 단어 [단어, 가중치] — 제목에 나오면 3배로 친다
+const CAT_KW = {
+  society: [['정부',3],['대통령',3],['국회',3],['정치',3],['선거',3],['여당',3],['야당',3],['국회의원',3],['장관',2],['법안',3],
+    ['법원',3],['검찰',3],['경찰',2],['재판',3],['판결',3],['헌법',3],['탄핵',3],['의혹',3],['사건',2],['사고',2],['논란',2],['여론',2],
+    ['경제',2],['금리',3],['물가',3],['부동산',3],['증시',3],['주가',2],['환율',3],['수출',2],['무역',2],['관세',3],['고용',2],['일자리',2],
+    ['실업',2],['복지',2],['연금',3],['의료',2],['교육',2],['입시',3],['저출생',3],['인구',2],['노동',2],['파업',3],['노조',3],
+    ['협동조합',3],['지자체',2],['시민',2],['국민',2],['사회',2],['국제',2],['외교',3],['전쟁',3],['북한',3],['정책',2],['예산',2],
+    ['세금',2],['소방관',3],['재난',2],['기후',2],['탄소',2],['은행',2],['대출',2],['사과',1],['정치인',3],['지사',2],['시장',1]],
+  ai: [['AI',3],['인공지능',3],['생성형',3],['LLM',3],['챗GPT',3],['ChatGPT',3],['GPT',3],['오픈AI',3],['OpenAI',3],['클로드',3],
+    ['Claude',3],['앤트로픽',3],['Anthropic',3],['제미나이',3],['Gemini',3],['딥러닝',3],['머신러닝',3],['에이전트',2],['프롬프트',3],
+    ['알고리즘',2],['개발자',2],['코딩',3],['소프트웨어',2],['클라우드',2],['반도체',2],['GPU',3],['엔비디아',3],['스타트업',1],['테크',1],
+    ['IT',1],['자동화',2],['로봇',2],['디지털',1],['데이터',1],['플랫폼',1],['프로덕트',2],['SaaS',3],['API',3],['오픈소스',3],
+    ['바이브코딩',3],['노코드',2],['파이썬',2],['개발',1],['기획자',1],['UX',2]],
+  beauty: [['뷰티',3],['화장품',3],['코스메틱',3],['스킨케어',3],['메이크업',3],['립스틱',3],['립밤',2],['파운데이션',3],['쿠션',1],
+    ['선크림',3],['선케어',3],['자외선',2],['세럼',3],['앰플',3],['토너',2],['마스크팩',3],['피부',3],['모공',3],['보습',2],['미백',3],
+    ['주름',2],['안티에이징',3],['향수',2],['헤어',2],['네일',2],['올리브영',3],['아모레퍼시픽',3],['LG생활건강',3],['한국콜마',3],
+    ['콜마',3],['코스맥스',3],['K뷰티',3],['K-뷰티',3],['케이뷰티',3],['인디브랜드',3],['성분',2],['클린뷰티',3],['더마',3],['제형',3],
+    ['발색',3],['색조',3],['기초화장품',3],['ODM',2],['트렌드',1],['브랜드',1],['뷰티트렌드',3]],
+};
+const KW_RE = new Map();
+function kwRe(w){
+  if(KW_RE.has(w)) return KW_RE.get(w);
+  const e = w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  // 영문 약어는 다른 단어 안에 섞인 경우(예: MAIL 의 AI)를 빼고 센다
+  const re = /^[A-Za-z]/.test(w)
+    ? new RegExp('(?<![A-Za-z])' + e + '(?![A-Za-z])', (w.length<=3 && w===w.toUpperCase()) ? 'g' : 'gi')
+    : new RegExp(e, 'g');
+  KW_RE.set(w, re);
+  return re;
+}
+function classify(title, text){
+  const body = String(text||'').slice(0, 8000), t = String(title||'');
+  const score = {};
+  for(const c of ['society','ai','beauty']){
+    let sc = 0;
+    for(const [w, wt] of CAT_KW[c]){
+      const re = kwRe(w);
+      const inT = (t.match(re)||[]).length, inB = Math.min(6, (body.match(re)||[]).length);
+      sc += wt * (inT*3 + inB);
+    }
+    score[c] = sc;
+  }
+  const best = Object.entries(score).sort((a,b)=>b[1]-a[1])[0];
+  return { cat: best[1] >= 6 ? best[0] : 'other', score };
+}
+
+// 기기 안 요약: 기사 안에서 자주 나오는 핵심 단어를 많이 담은 문장 3개를 원래 순서대로 고른다
+const JOSA = ['으로부터','에서부터','이라고','에게서','으로서','으로써','에서는','에서도','에게는','이라는','까지','부터','에서','에게','한테',
+  '으로','처럼','보다','마저','조차','이나','이며','이고','라는','이라','에는','에도','와의','과의','들이','들은','들을','들의',
+  '은','는','이','가','을','를','에','의','와','과','도','로','만','들'];
+const STOP = new Set(['그리고','하지만','그러나','또한','그래서','따라서','이번','지난','오늘','어제','내일','우리','저희','이런','그런','이것','그것',
+  '있습니다','합니다','했습니다','됩니다','입니다','있다','했다','한다','된다','이다','하는','있는','없는','되는','위해','대한','통해','따라',
+  '가장','많은','이후','경우','때문','정도','관련','지금','이제','모든','다양한','다른','같은','함께','라고','대해','하고','하며','하지',
+  '것이다','것을','것이','것은','수도','있을','있어','없이','이라며','밝혔다','말했다','설명했다','전했다','기자','뉴스','기사']);
+const KW_STOP = new Set(['다시','최근','특히','결국','실제','직접','가운데','이상','이하','올해','내년','작년','하반기','상반기']);
+function koTokens(str){
+  return (String(str).match(/[A-Za-z][A-Za-z0-9+#-]*|[가-힣]{2,}/g)||[]).map(t=>{
+    if(/^[가-힣]+$/.test(t)){ for(const j of JOSA){ if(t.length > j.length+1 && t.endsWith(j)){ t = t.slice(0, -j.length); break; } } }
+    return t;
+  }).filter(t=>t.length>=2 && !STOP.has(t));
+}
+const JUNK = /(구독하기|구독 신청|수신\s?거부|무단\s?전재|재배포|저작권자|ⓒ|©|바로가기|클릭하세요|클릭해|이메일 주소|뉴스레터 구독|공유하기|좋아요|댓글|unsubscribe|https?:\/\/|www\.)/i;
+function splitSentences(text){
+  const out = [];
+  String(text).replace(/\r/g,'').replace(/(\d)\.(\d)/g,'$1\u2024$2').split(/\n+/).forEach(line=>{
+    line = line.trim(); if(!line) return;
+    (line.match(/[^.!?。…]+[.!?。…]+["'”’)\]]*|[^.!?。…]+$/g) || [line]).forEach(x=>{
+      x = x.trim().replace(/\u2024/g,'.'); if(x) out.push(x);
+    });
+  });
+  return out;
+}
+function trimSent(x){
+  if(x.length <= 150) return x;
+  const cut = x.lastIndexOf(' ', 140);
+  return x.slice(0, cut > 80 ? cut : 140).replace(/[,，·\s]+$/,'') + '…';
+}
+function jaccard(a, b){ let n = 0; a.forEach(w=>{ if(b.has(w)) n++; }); return n / (a.size + b.size - n || 1); }
+function localSummary(title, text){
+  const sents = splitSentences(text).filter(x=>x.length>=20 && x.length<=280 && !JUNK.test(x) && /[가-힣]/.test(x));
+  const tf = new Map();
+  const toks = sents.map(x=>{ const t = koTokens(x); t.forEach(w=>tf.set(w, (tf.get(w)||0)+1)); return t; });
+  const titleSet = new Set(koTokens(title||''));
+  const n = sents.length;
+  const scored = sents.map((x, i)=>{
+    const set = new Set(toks[i]);
+    if(set.size < 3) return null;
+    let sc = 0;
+    set.forEach(w=>{ const f = tf.get(w); if(f>1) sc += Math.log(1+f); if(titleSet.has(w)) sc += 1.5; });
+    sc /= Math.sqrt(set.size);
+    if(i < 3) sc *= 1.25; else if(i < n*0.3) sc *= 1.1;   // 앞부분에 요지가 오는 경우가 많다
+    if(/\d/.test(x)) sc *= 1.08;                         // 수치가 있는 문장은 핵심일 때가 많다
+    if(/[?？]$/.test(x)) sc *= 0.7;
+    return { i, x, sc, set };
+  }).filter(Boolean).sort((a,b)=>b.sc-a.sc);
+  const picked = [];
+  for(const c of scored){
+    if(picked.length >= 3) break;
+    if(picked.some(p=>jaccard(p.set, c.set) > 0.5)) continue;   // 비슷한 문장은 하나만
+    picked.push(c);
+  }
+  picked.sort((a,b)=>a.i-b.i);
+  let summary = picked.map(p=>trimSent(p.x));
+  if(!summary.length) summary = splitSentences(text).slice(0, 2).map(trimSent);
+  // 키워드는 명사 위주로: 동사·부사처럼 끝나는 말과 흔한 부사는 뺀다
+  const NOT_KW = /(고|며|서|면|게|지|다|요|던|운|한|된|할|될|는|은)$/;
+  const keywords = [...tf.entries()].filter(([w, f])=>f >= 2 && !(/^[가-힣]+$/.test(w) && NOT_KW.test(w)) && !KW_STOP.has(w))
+    .sort((a,b)=>(b[1] + (titleSet.has(b[0])?3:0)) - (a[1] + (titleSet.has(a[0])?3:0)))
+    .slice(0, 5).map(([w])=>w);
+  return { headline: '', summary, keywords };
+}
+
+function sumSig(q){ return (q.content||'').length + ':' + (q.title||'').length; }
+function needsSummary(q){ return q && q.content && q.kind!=='brief' && !(q.sum && q.sum.ver===SUM_VER && q.sum.sig===sumSig(q)); }
+function catOf(q){ return q ? (q.catManual || (q.sum && q.sum.cat) || null) : null; }
+function catTagHtml(q, size){
+  const c = catOf(q); if(!c || q.kind==='brief') return '';
+  return `<span class="cat-tag ${size||''}" style="--c:${CATS[c].color}">${CATS[c].name}</span>`;
+}
+async function ensureSummary(q){
+  if(!needsSummary(q)) return;
+  let out = null;
+  if(aiSumAvail !== false){
+    try{
+      const r = await fetch('/api/summarize', { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ title:q.title, text:q.content }), signal: AbortSignal.timeout(50000) });
+      if(r.status===501 || r.status===404 || r.status===405) aiSumAvail = false;   // 키 없음 → 이번 실행 동안 기기 요약만
+      else if(r.ok){
+        const j = await r.json();
+        if(j && Array.isArray(j.summary) && j.summary.length && CATS[j.category]){
+          out = { cat:j.category, headline:j.headline||'', summary:j.summary, keywords:j.keywords||[], by:'claude' };
+          aiSumAvail = true;
+        }
+      }
+    }catch(_){}
+  }
+  if(!out){ const L = localSummary(q.title, q.content); out = { cat: classify(q.title, q.content).cat, ...L, by:'local' }; }
+  out.ver = SUM_VER; out.sig = sumSig(q); out.at = Date.now();
+  q.sum = out;
+}
+async function summarizeAll(){
+  if(sumBusy) return; sumBusy = true;
+  if(activeTab==='brief') renderBrief();
+  try{
+    for(let guard=0; guard<200; guard++){
+      const q = Q.find(needsSummary);
+      if(!q) break;
+      await ensureSummary(q);
+      saveQ(); renderQ();
+    }
+  } finally { sumBusy = false; if(activeTab==='brief') renderBrief(); }
+}
+
+function renderBrief(){
+  const arts = Q.filter(q=>q.kind!=='brief');
+  const ready = arts.filter(q=>q.content);
+  const waiting = arts.filter(q=>q.status==='pending' || q.status==='loading').length;
+  const done = ready.filter(q=>q.sum).length;
+  $('brEmpty').classList.toggle('dn', arts.length>0);
+  const eng = $('brEngine');
+  eng.textContent = aiSumAvail ? 'Claude 요약' : '기기 요약';
+  eng.classList.toggle('ai', !!aiSumAvail);
+  eng.style.display = arts.length ? '' : 'none';
+  $('brSub').textContent = !arts.length ? '' :
+    `기사 ${done}개 정리됨` + (ready.length>done ? ` · ${ready.length-done}개 요약 중` : '') + (waiting ? ` · ${waiting}개 불러오는 중` : '');
+  const body = $('brBody');
+  if(!arts.length){ body.innerHTML = ''; return; }
+
+  const summed = ready.filter(q=>q.sum);
+  const counts = {}; CAT_ORDER.forEach(c=>counts[c] = summed.filter(q=>catOf(q)===c).length);
+  if(brFilter!=='all' && !counts[brFilter]) brFilter = 'all';
+
+  let h = '';
+  if(summed.length) h += `<button class="br-all" onclick="playBriefing('all')">${ic('headphones')}전체 요약 브리핑 듣기 · ${summed.length}개</button>`;
+
+  // 추천: 아직 안 들은 기사 — 분야마다 최근 것 하나씩, 모자라면 최근 순으로 채움
+  const unheard = summed.filter(q=>q.status==='ready').sort((a,b)=>b.id-a.id);
+  const rec = [];
+  CAT_ORDER.forEach(c=>{ const q = unheard.find(x=>catOf(x)===c); if(q) rec.push(q); });
+  unheard.forEach(q=>{ if(rec.length<3 && !rec.includes(q)) rec.push(q); });
+  if(rec.length){
+    h += `<div class="card rec"><div class="rec-h">${ic('spark')}추천 · 아직 안 들은 기사</div>` +
+      rec.slice(0, 3).map(q=>`<button class="rec-item" onclick="playById(${q.id})">
+        <span class="rec-col">${catTagHtml(q,'xs')}<span class="rec-t">${esc(q.sum.headline || q.title)}</span></span>
+        <span class="rec-play">${ic('play','fill')}</span></button>`).join('') + `</div>`;
+  }
+
+  // 분야 필터
+  h += `<div class="chips"><button class="chip-f${brFilter==='all'?' on':''}" onclick="setBrFilter('all')">전체<span class="n">${summed.length}</span></button>` +
+    CAT_ORDER.filter(c=>c!=='other' || counts.other).map(c=>`<button class="chip-f${brFilter===c?' on':''}" onclick="setBrFilter('${c}')">
+      <span class="cat-dot" style="--c:${CATS[c].color}"></span>${CATS[c].name}<span class="n">${counts[c]}</span></button>`).join('') + `</div>`;
+
+  // 분야별 정리
+  const cats = brFilter==='all' ? CAT_ORDER : [brFilter];
+  cats.forEach(c=>{
+    const items = summed.filter(q=>catOf(q)===c);
+    if(!items.length) return;
+    h += `<div class="cat-sec"><span class="cat-dot" style="--c:${CATS[c].color}"></span><b>${CATS[c].name}</b><span class="n">${items.length}</span>
+      <button class="text-btn" onclick="playBriefing('${c}')">${ic('headphones')}요약 듣기</button></div>`;
+    h += items.map(bcardHtml).join('');
+  });
+  // 요약 대기 중인 기사
+  const pend = ready.filter(q=>!q.sum);
+  if(pend.length && brFilter==='all'){
+    h += `<div class="cat-sec"><b>요약 중</b><span class="n">${pend.length}</span></div>` +
+      pend.map(q=>`<div class="card bcard"><div class="bc-top"><span class="q-host">${esc(shortHost(q.url))}</span></div>
+        <div class="bc-title">${esc(q.title)}</div><div class="bc-wait"><span class="spin"></span>핵심 내용을 정리하고 있어요</div></div>`).join('');
+  }
+  body.innerHTML = h;
+}
+function bcardHtml(q){
+  const c = catOf(q), col = CATS[c].color, s = q.sum;
+  return `<div class="card bcard" style="--c:${col}">
+    <div class="bc-top"><button class="cat-tag" style="--c:${col}" onclick="openCatSheet(${q.id})" aria-label="분야 바꾸기">${CATS[c].name}${ic('down')}</button>
+      <span class="q-host">${esc(shortHost(q.url))}</span>${q.status==='done' ? '<span class="heard">들음</span>' : ''}</div>
+    <div class="bc-title" onclick="openViewerById(${q.id},'text')">${esc(q.title)}</div>
+    ${s.headline && s.headline !== q.title ? `<div class="bc-head">${esc(s.headline)}</div>` : ''}
+    <ul class="bc-sum">${s.summary.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
+    ${s.keywords && s.keywords.length ? `<div class="bc-kw">${s.keywords.map(k=>`<span>#${esc(k)}</span>`).join('')}</div>` : ''}
+    <div class="q-acts">
+      <button class="act" onclick="playById(${q.id})">${ic('play','fill')}<span>기사 듣기</span></button>
+      <button class="act" onclick="playBriefing([${q.id}])">${ic('headphones')}<span>요약만 듣기</span></button>
+      <button class="act" onclick="openViewerById(${q.id},'text')">${ic('maximize')}<span>본문</span></button>
+    </div>
+  </div>`;
+}
+function setBrFilter(c){ brFilter = c; haptic(6); renderBrief(); }
+function playById(id){ const i = Q.findIndex(q=>q.id===id); if(i>=0) playOrLoadItem(i); }
+
+// 분야 바꾸기 (자동 분류가 틀렸을 때)
+function openCatSheet(id){
+  const q = Q.find(x=>x.id===id); if(!q) return;
+  catTarget = id;
+  const cur = catOf(q), auto = q.sum && q.sum.cat;
+  $('catSheetTitle').textContent = q.title;
+  $('catOpts').innerHTML = CAT_ORDER.map(c=>`<button class="cat-opt" onclick="setCat('${c}')">
+      <span class="cat-dot" style="--c:${CATS[c].color}"></span>${CATS[c].name}${c===auto && q.catManual ? ' <small>자동 분류</small>' : ''}${c===cur ? ic('check') : ''}</button>`).join('');
+  openSheet('catSheet');
+}
+function setCat(c){
+  const q = Q.find(x=>x.id===catTarget); if(!q) return;
+  q.catManual = (q.sum && q.sum.cat===c) ? null : c;
+  saveQ(); renderQ(); renderBrief();
+  closeOv('catSheet');
+  showToast(`${CATS[c].name}(으)로 옮겼어요`);
+}
+
+// 요약 브리핑: 고른 기사들의 핵심만 이어서 읽어준다
+function buildBriefText(items, label, groupByCat){
+  const ORD = ['첫 번째','두 번째','세 번째','네 번째','다섯 번째','여섯 번째','일곱 번째','여덟 번째','아홉 번째','열 번째'];
+  let t = items.length===1 ? `${items[0].title}. 요약입니다.\n` : `${label} 요약 브리핑입니다. 기사 ${items.length}개를 정리했습니다.\n`;
+  let last = null;
+  items.forEach((q, k)=>{
+    const c = catOf(q);
+    if(groupByCat && c !== last){ t += `\n${CATS[c].name} 소식입니다.\n`; last = c; }
+    if(items.length > 1) t += `\n${ORD[k] || (k+1)+'번째'} 기사. ${q.sum.headline || q.title}.\n`;
+    t += q.sum.summary.join('\n') + '\n';
+  });
+  if(items.length > 1) t += '\n이상으로 브리핑을 마칩니다.';
+  return t;
+}
+function playBriefing(sel){
+  const arts = Q.filter(q=>q.kind!=='brief' && q.sum);
+  let items, label;
+  if(Array.isArray(sel)){ items = arts.filter(q=>sel.includes(q.id)); label = '선택한 기사'; }
+  else if(sel==='all'){ items = CAT_ORDER.flatMap(c=>arts.filter(q=>catOf(q)===c)); label = '전체 분야'; }
+  else { items = arts.filter(q=>catOf(q)===sel); label = (CATS[sel] ? CATS[sel].name : '') + ' 분야'; }
+  if(!items.length){ showToast('요약된 기사가 아직 없어요'); return; }
+  const text = buildBriefText(items, label, sel==='all');
+  const title = items.length===1 ? `[요약] ${items[0].title}` : `[브리핑] ${label} · 기사 ${items.length}개`;
+  stopAll(true);
+  Q = Q.filter(q=>q.kind!=='brief');   // 이전 브리핑은 하나만 남긴다
+  const b = { id:++uid, kind:'brief', url:'https://brief.local/'+Date.now(), title, content:text, status:'ready', err:'', pos:0 };
+  Q.unshift(b); curIdx = -1;
+  renderQ(); saveQ();
+  playAt(0, false);   // 브리핑만 듣고 멈춤 (이어서 기사로 넘어가지 않음)
+  haptic(10);
 }
 
 /* ══════════════════════
@@ -2221,7 +2619,7 @@ function setupMediaSession(q){
   if(!('mediaSession' in navigator)) return;
   try{
     navigator.mediaSession.metadata = new MediaMetadata({
-      title: q.title, artist: shortHost(q.url), album: '기사 읽어주기',
+      title: q.title, artist: q.kind==='brief' ? '요약 브리핑' : shortHost(q.url), album: '기사 읽어주기',
       artwork: [{src:'icon-192.png',sizes:'192x192',type:'image/png'},{src:'icon-512.png',sizes:'512x512',type:'image/png'}],
     });
     const H = (a,f)=>{ try{ navigator.mediaSession.setActionHandler(a,f); }catch(_){} };
@@ -2336,7 +2734,8 @@ function openViewer(i, mode){
   viewer.id = q.id;
   viewer.mode = mode || (q.status==='error' ? 'site' : 'text');
   $('vwTitle').textContent = q.title;
-  $('vwExt').href = q.url;
+  $('vwExt').href = q.kind==='brief' ? '#' : q.url;
+  $('vwExt').style.visibility = q.kind==='brief' ? 'hidden' : '';
   if(!viewer.open){
     viewer.open = true;
     viewer.prevCollapsed = playerCollapsed;
@@ -2362,6 +2761,7 @@ function readerFont(d){
 }
 function renderViewer(){
   const q = Q.find(x=>x.id===viewer.id); if(!q) return;
+  if(q.kind==='brief' && viewer.mode==='site') viewer.mode = 'text';
   const i = Q.indexOf(q);
   $('vwSeg').dataset.i = viewer.mode==='site' ? 1 : 0;
   $('vwSeg').querySelectorAll('button').forEach((b,k)=>b.classList.toggle('on', (k===1)===(viewer.mode==='site')));
@@ -2436,6 +2836,7 @@ function confirmDInput(){
   closeOv('inputSheet'); renderQ(); saveQ();
   if(viewer.open && viewer.id===q.id){ viewerMode('text'); }
   showToast('본문을 입력했어요. 이제 들을 수 있어요');
+  summarizeAll();
 }
 
 /* ══════════════════════
