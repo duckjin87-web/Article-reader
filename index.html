@@ -289,6 +289,40 @@ button.cat-tag .ic{width:12px;height:12px}
 .bc-cov{display:flex;align-items:center;gap:6px;margin-top:10px;font-size:12.5px;font-weight:600;color:var(--text-3)}
 .bc-cov .ic{width:14px;height:14px;flex-shrink:0}
 
+/* ═════════ 뉴스로 보기 ═════════ */
+.br-view{margin:0 0 16px}
+.br-view button{height:36px;font-size:13.5px}
+.dg-date{font-size:13px;font-weight:700;color:var(--text-3);margin:2px 2px 6px}
+.dg-sec{margin-bottom:18px;padding:16px 16px 6px;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--border);box-shadow:var(--shadow-1)}
+.br-anim .dg-sec{animation:cardIn .5s var(--spring) both}
+.dg-head{display:flex;align-items:center;gap:8px;padding-bottom:12px;border-bottom:2px solid var(--c)}
+.dg-head b{font-size:17px;font-weight:900;letter-spacing:-.3px}
+.dg-head .n{font-size:13px;font-weight:700;color:var(--text-3)}
+.dg-head .text-btn{margin-left:auto}
+.dg-bar{width:4px;height:18px;border-radius:2px;background:var(--c)}
+.dg-list{list-style:none;margin:0;padding:0}
+.dg-item{display:flex;gap:12px;padding:14px 0;border-bottom:1px solid var(--border)}
+.dg-item:last-child{border-bottom:0}
+.dg-item.heard .dg-title{color:var(--text-3)}
+.dg-no{width:24px;flex-shrink:0;font-size:19px;font-weight:900;line-height:1.35;color:var(--c);text-align:center;font-variant-numeric:tabular-nums}
+.dg-body{flex:1;min-width:0;cursor:pointer}
+.dg-title{font-size:15.5px;font-weight:800;line-height:1.42;letter-spacing:-.02em;word-break:keep-all;overflow-wrap:anywhere}
+.dg-sum{list-style:none;margin:7px 0 0;padding:0;display:flex;flex-direction:column;gap:5px}
+.dg-sum li{position:relative;padding-left:11px;font-size:14px;line-height:1.6;color:var(--text-2);word-break:keep-all;overflow-wrap:anywhere}
+.dg-sum li::before{content:'';position:absolute;left:0;top:.72em;width:4px;height:4px;border-radius:50%;background:var(--text-3)}
+.dg-meta{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-top:8px;font-size:12px;color:var(--text-3)}
+.dg-more{margin-left:auto;font-weight:800;color:var(--accent)}
+.dg-orig{margin-top:8px;font-size:12px;color:var(--text-3);line-height:1.5;word-break:keep-all}
+.dg-acts{display:flex;gap:2px;margin-top:10px;padding-top:6px;border-top:1px solid var(--border)}
+.intl-tag,.info-tag{flex-shrink:0;padding:1px 7px;border-radius:999px;font-size:11px;font-weight:800;white-space:nowrap;vertical-align:1px}
+.intl-tag{color:#1C7ED6;background:rgba(28,126,214,.12)}
+.info-tag{color:#2B8A3E;background:rgba(43,138,62,.12)}
+[data-theme=dark] .intl-tag{color:#74C0FC;background:rgba(116,192,252,.15)}
+[data-theme=dark] .info-tag{color:#8CE99A;background:rgba(140,233,154,.14)}
+.pc-name{display:flex;align-items:center;gap:7px}
+#perCatSeg .set-row{min-height:40px}
+#perCatSeg .mini-seg button{min-width:34px;padding:0 8px}
+
 /* ═════════ 매일 새 기사 ═════════ */
 .feed-bar{display:flex;align-items:center;gap:8px;margin:-4px 2px 14px;font-size:12.5px;color:var(--text-3)}
 .feed-bar .text-btn{margin-left:auto;font-size:13px}
@@ -720,7 +754,8 @@ button.cat-tag .ic{width:12px;height:12px}
     <div class="set-sec" id="feedSec"><span>매일 새 기사</span><small id="feedWhen"></small></div>
     <div class="set-card">
       <div class="set-row"><span>앱을 열 때 새 기사 자동으로 담기</span><button class="sw" id="dailySw" onclick="toggleDaily()" aria-label="매일 새 기사"></button></div>
-      <div class="set-row"><span>분야마다 하루 몇 개</span><div class="mini-seg" id="perCatSeg"></div></div>
+      <div class="set-row" style="align-items:flex-start;padding-top:8px"><span>분야별 하루 몇 개</span></div>
+      <div id="perCatSeg"></div>
       <button class="btn btn-sec" style="height:46px;margin-top:6px" onclick="refreshFeeds(true)">지금 새 기사 가져오기</button>
     </div>
     <div class="set-sec"><span>출처</span><small>끄면 그 출처 기사는 안 가져와요</small></div>
@@ -815,15 +850,30 @@ const DEFAULT_SOURCES = [
   { id:'hani-soc',  cat:'society', name:'한겨레 사회',     url:'https://www.hani.co.kr/rss/society/' },
   { id:'donga-soc', cat:'society', name:'동아일보 사회',   url:'https://rss.donga.com/national.xml' },
   { id:'sbs-soc',   cat:'society', name:'SBS 뉴스 사회',   url:'https://news.sbs.co.kr/news/SectionRssFeed.do?sectionId=03&plink=RSSREADER' },
+  { id:'khan-soc',  cat:'society', name:'경향신문 사회',   url:'https://www.khan.co.kr/rss/rssdata/society_news.xml' },
+  { id:'segye-soc', cat:'society', name:'세계일보 사회',   url:'https://www.segye.com/Articles/RSSList/segye_society.xml' },
+  { id:'jtbc-soc',  cat:'society', name:'JTBC 뉴스 사회',  url:'https://fs.jtbc.co.kr/RSS/society.xml' },
   { id:'aitimes',   cat:'ai',      name:'AI타임스',        url:'https://www.aitimes.com/rss/allArticle.xml' },
   { id:'geeknews',  cat:'ai',      name:'GeekNews',        url:'https://news.hada.io/rss/news' },
   { id:'byline',    cat:'ai',      name:'바이라인네트워크', url:'https://byline.network/feed/' },
+  // 해외 — 회사 공식 블로그·전문 블로그(정보성 글)와 기술 매체. 요약은 한국어로 옮겨서 보여준다
+  { id:'openai',    cat:'ai', lang:'en', kind:'info', name:'OpenAI 뉴스',         url:'https://openai.com/news/rss.xml' },
+  { id:'deepmind',  cat:'ai', lang:'en', kind:'info', name:'Google DeepMind 블로그', url:'https://deepmind.google/blog/rss.xml' },
+  { id:'hf',        cat:'ai', lang:'en', kind:'info', name:'Hugging Face 블로그', url:'https://huggingface.co/blog/feed.xml' },
+  { id:'simonw',    cat:'ai', lang:'en', kind:'info', name:'Simon Willison 블로그', url:'https://simonwillison.net/atom/everything/' },
+  { id:'latent',    cat:'ai', lang:'en', kind:'info', name:'Latent Space',        url:'https://www.latent.space/feed' },
+  { id:'importai',  cat:'ai', lang:'en', kind:'info', name:'Import AI',           url:'https://importai.substack.com/feed' },
+  { id:'tc-ai',     cat:'ai', lang:'en', name:'TechCrunch AI',        url:'https://techcrunch.com/category/artificial-intelligence/feed/' },
+  { id:'verge-ai',  cat:'ai', lang:'en', name:'The Verge AI',         url:'https://www.theverge.com/rss/ai-artificial-intelligence/index.xml' },
+  { id:'mittr-ai',  cat:'ai', lang:'en', name:'MIT Technology Review AI', url:'https://www.technologyreview.com/topic/artificial-intelligence/feed' },
   { id:'learncrew', cat:'beauty',  name:'한국콜마 러닝크루', url:'https://rss.blog.naver.com/learning-crew.xml' },
   { id:'jangup',    cat:'beauty',  name:'장업신문',        url:'https://www.jangup.com/rss/allArticle.xml' },
   { id:'thebk',     cat:'beauty',  name:'뷰티경제',        url:'https://www.thebk.co.kr/rss/allArticle.xml' },
   { id:'cmn',       cat:'beauty',  name:'CMN 코스메틱뉴스', url:'https://www.cmn.co.kr/rss/allArticle.xml' },
 ];
 let feedBusy = false;
+let brView = (()=>{ try{ return localStorage.getItem('arq_brview') || 'news'; }catch(_){ return 'news'; } })();
+let brOpen = new Set();   // 뉴스 보기에서 펼친 항목
 let _dInputIdx = -1;
 
 const LS_Q='arq_v3', LS_SAVED='arq_saved_v1', LS_SPD='arq_spd', LS_VOICE='arq_voice',
@@ -2100,7 +2150,7 @@ function loadItem(i){
     inflight.delete(q.id);
     renderQ(); saveQ();
     if(viewer.open && viewer.id===q.id){ $('vwTitle').textContent = q.title; renderViewer(); }
-    if(q.status==='ready'){ updateHot(); summarizeAll(); }
+    if(q.status==='ready'){ updateHot(); summarizeAll(); fetchAltContent(q); }
     return q.status==='ready';
   })();
   inflight.set(q.id, p);
@@ -2207,7 +2257,7 @@ function koTokens(str){
     return t;
   }).filter(t=>t.length>=2 && !STOP.has(t));
 }
-const JUNK = /(구독하기|구독 신청|수신\s?거부|무단\s?전재|재배포|저작권자|ⓒ|©|바로가기|클릭하세요|클릭해|이메일 주소|뉴스레터 구독|공유하기|좋아요|댓글|unsubscribe|https?:\/\/|www\.)/i;
+const JUNK = /(구독하기|구독 신청|수신\s?거부|무단\s?전재|재배포|저작권자|ⓒ|©|바로가기|클릭하세요|클릭해|이메일 주소|뉴스레터 구독|공유하기|좋아요|댓글|unsubscribe|subscribe to|sign up for|newsletter|all rights reserved|https?:\/\/|www\.)/i;
 function splitSentences(text){
   const out = [];
   String(text).replace(/\r/g,'').replace(/(\d)\.(\d)/g,'$1\u2024$2').split(/\n+/).forEach(line=>{
@@ -2219,16 +2269,23 @@ function splitSentences(text){
   return out;
 }
 function trimSent(x){
-  if(x.length <= 150) return x;
-  const cut = x.lastIndexOf(' ', 140);
-  return x.slice(0, cut > 80 ? cut : 140).replace(/[,，·\s]+$/,'') + '…';
+  const lim = /[가-힣]/.test(x) ? 150 : 260;   // 영어 문장은 길어서 넉넉히 (번역하면 짧아진다)
+  if(x.length <= lim) return x;
+  const cut = x.lastIndexOf(' ', lim-10);
+  return x.slice(0, cut > lim*0.55 ? cut : lim-10).replace(/[,，·\s]+$/,'') + '…';
 }
 function jaccard(a, b){ let n = 0; a.forEach(w=>{ if(b.has(w)) n++; }); return n / (a.size + b.size - n || 1); }
+const EN_STOP = new Set('the a an and or but if then than that this these those with from into onto for of to in on at by as is are was were be been being it its it’s their there they them we our you your he she his her not no yes can could will would should may might must have has had do does did just also more most very about over under after before while what which who whom when where why how all any each other some such only own same so too new one two three said says say like get got make made use used using way well even still much many today week year now here per via'.split(' '));
+function enTokens(str){
+  return (String(str).toLowerCase().match(/[a-z][a-z0-9+#-]{2,}/g)||[]).map(w=>w.length>4 && w.endsWith('s') && !/(ss|us|is|ous)$/.test(w) ? w.slice(0,-1) : w).filter(w=>!EN_STOP.has(w));
+}
 function localSummary(title, text){
-  const sents = splitSentences(text).filter(x=>x.length>=20 && x.length<=280 && !JUNK.test(x) && /[가-힣]/.test(x));
+  const en = detectLang(text) === 'en';
+  const tokOf = en ? enTokens : koTokens;
+  const sents = splitSentences(text).filter(x=>x.length>=(en?40:20) && x.length<=(en?400:280) && !JUNK.test(x) && (en ? /[A-Za-z]{3}/ : /[가-힣]/).test(x));
   const tf = new Map();
-  const toks = sents.map(x=>{ const t = koTokens(x); t.forEach(w=>tf.set(w, (tf.get(w)||0)+1)); return t; });
-  const titleSet = new Set(koTokens(title||''));
+  const toks = sents.map(x=>{ const t = tokOf(x); t.forEach(w=>tf.set(w, (tf.get(w)||0)+1)); return t; });
+  const titleSet = new Set(tokOf(title||''));
   const n = sents.length;
   const scored = sents.map((x, i)=>{
     const set = new Set(toks[i]);
@@ -2258,7 +2315,7 @@ function localSummary(title, text){
   return { headline: '', summary, keywords };
 }
 
-function sumSig(q){ return (q.content||'').length + ':' + (q.title||'').length; }
+function sumSig(q){ return (q.content||'').length + ':' + (q.title||'').length + ':' + (q.altContent||'').length; }
 function needsSummary(q){ return q && q.content && q.kind!=='brief' && !(q.sum && q.sum.ver===SUM_VER && q.sum.sig===sumSig(q)); }
 function catOf(q){ return q ? (q.catManual || q.feedCat || (q.sum && q.sum.cat) || null) : null; }
 function srcLabel(q){ return q.kind==='brief' ? '요약 브리핑' : (q.srcName || shortHost(q.url)); }
@@ -2268,11 +2325,13 @@ function catTagHtml(q, size){
 }
 async function ensureSummary(q){
   if(!needsSummary(q)) return;
+  // 여러 매체가 다룬 소식이면 다른 매체 기사까지 합쳐서 요약한다 (한 기사만 볼 때 빠지는 내용 보완)
+  const merged = q.altContent ? q.content.slice(0, 6000) + '\n\n' + q.altContent.slice(0, 5500) : q.content;
   let out = null;
   if(aiSumAvail !== false){
     try{
       const r = await fetch('/api/summarize', { method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ title:q.title, text:q.content }), signal: AbortSignal.timeout(50000) });
+        body: JSON.stringify({ title:q.title, text:merged }), signal: AbortSignal.timeout(50000) });
       if(r.status===501 || r.status===404 || r.status===405) aiSumAvail = false;   // 키 없음 → 이번 실행 동안 기기 요약만
       else if(r.ok){
         const j = await r.json();
@@ -2283,9 +2342,42 @@ async function ensureSummary(q){
       }
     }catch(_){}
   }
-  if(!out){ const L = localSummary(q.title, q.content); out = { cat: classify(q.title, q.content).cat, ...L, by:'local' }; }
+  if(!out){ const L = localSummary(q.title, merged); out = { cat: classify(q.title, merged).cat, ...L, by:'local' }; }
+  // 해외 글: 기기 요약은 영어로 나오므로 제목·요약·키워드를 한국어로 옮긴다
+  if(out.by==='local' && detectLang(q.content)==='en'){
+    const tr = await translateTexts([q.title, ...out.summary, ...(out.keywords||[])]);
+    if(tr){
+      const n = out.summary.length;
+      out.headline = tr[0] || '';
+      out.summary = tr.slice(1, 1+n).map((x, k)=>x || out.summary[k]);
+      out.keywords = tr.slice(1+n).filter(Boolean);
+      out.tr = true;
+    }
+  }
   out.ver = SUM_VER; out.sig = sumSig(q); out.at = Date.now();
   q.sum = out;
+}
+let trAvail = null;
+async function translateTexts(texts){
+  if(trAvail === false || !texts.length) return null;
+  try{
+    const r = await fetch('/api/translate', { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ texts: texts.map(t=>String(t).slice(0, 1400)), to:'ko' }), signal: AbortSignal.timeout(20000) });
+    if(r.status===404 || r.status===405){ trAvail = false; return null; }
+    if(!r.ok) return null;
+    const j = await r.json();
+    return Array.isArray(j.texts) && j.texts.length===texts.length ? j.texts : null;
+  }catch(_){ return null; }
+}
+// 여러 매체가 다룬 소식: 다른 매체 기사 본문도 한 개 받아 둔다 (요약을 합치는 데 사용)
+async function fetchAltContent(q){
+  if(!q || q.altContent || q.altTried || !q.alts || !q.alts.length || !q.hot || q.hot.n < 2) return;
+  q.altTried = true;
+  for(const u of q.alts){
+    if(u === q.url) continue;
+    try{ const a = await fetchArticle(u); if(a && a.content && a.content.length > 200){ q.altContent = a.content.slice(0, 8000); q.altFrom2 = shortHost(u); break; } }catch(_){}
+  }
+  if(q.altContent){ saveQ(); summarizeAll(); }
 }
 async function summarizeAll(){
   if(sumBusy) return; sumBusy = true;
@@ -2323,6 +2415,16 @@ function renderBrief(){
   let h = '';
   const hotList = summed.filter(q=>hotLabel(q.hot)).sort((a,b)=>hotScore(b)-hotScore(a) || b.id-a.id);
   if(summed.length) h += `<button class="br-all" onclick="playBriefing('hot')">${ic('headphones')}${hotList.length ? '많이 다룬 소식부터 듣기' : '전체 요약 브리핑 듣기'} · ${summed.length}개</button>`;
+  if(summed.length) h += `<div class="seg br-view" id="brViewSeg" data-i="${brView==='cards'?1:0}"><div class="seg-ind"></div>
+      <button class="${brView!=='cards'?'on':''}" onclick="setBrView('news')">${ic('doc')}뉴스로 보기</button>
+      <button class="${brView==='cards'?'on':''}" onclick="setBrView('cards')">${ic('list')}카드로 보기</button></div>`;
+  if(brView !== 'cards'){
+    h += digestHtml(summed);
+    const pendN = ready.filter(q=>!q.sum).length;
+    if(pendN) h += `<div class="bc-wait" style="justify-content:center;margin:6px 0 18px"><span class="spin"></span>${pendN}개 기사를 정리하고 있어요</div>`;
+    body.innerHTML = h;
+    return;
+  }
   if(hotList.length){
     h += `<div class="card rec"><div class="rec-h">${ic('spark')}많이 다룬 소식</div>` +
       hotList.slice(0, 5).map((q, k)=>`<button class="rec-item" onclick="playById(${q.id})">
@@ -2368,6 +2470,51 @@ function renderBrief(){
   }
   body.innerHTML = h;
 }
+// ── 뉴스로 보기: 분야마다 1. 2. 3. 번호를 매긴 요약 지면 ──
+function setBrView(v){ brView = v; try{ localStorage.setItem('arq_brview', v); }catch(_){} haptic(6); renderBrief(); }
+function toggleDg(id){ brOpen.has(id) ? brOpen.delete(id) : brOpen.add(id); haptic(5); renderBrief(); }
+function relTime(t){
+  if(!t) return '';
+  const m = Math.round((Date.now()-t)/60000);
+  if(m < 60) return `${Math.max(1,m)}분 전`;
+  const h = Math.round(m/60); if(h < 24) return `${h}시간 전`;
+  return `${Math.round(h/24)}일 전`;
+}
+function digestHtml(summed){
+  const d = new Date(), W = ['일','월','화','수','목','금','토'];
+  let h = `<div class="dg-date">${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일 ${W[d.getDay()]}요일</div>`;
+  CAT_ORDER.forEach(c=>{
+    const items = summed.filter(q=>catOf(q)===c).sort((a,b)=>hotScore(b)-hotScore(a) || (b.feedDate||b.addedAt||b.id)-(a.feedDate||a.addedAt||a.id));
+    if(!items.length) return;
+    h += `<section class="dg-sec" style="--c:${CATS[c].color}">
+      <div class="dg-head"><span class="dg-bar"></span><b>${c==='society' ? '뉴스 · 사회·시사' : CATS[c].name}</b><span class="n">${items.length}</span>
+        <button class="text-btn" onclick="playBriefing('${c}')">${ic('headphones')}듣기</button></div>
+      <ol class="dg-list">` + items.map((q, k)=>{
+        const s = q.sum, open = brOpen.has(q.id);
+        const lines = open ? s.summary : s.summary.slice(0, 2);
+        const intl = q.srcLang==='en' || detectLang(q.content)==='en';
+        const srcTxt = q.hot && q.hot.n >= 2 ? `${q.hot.srcs[0]} 외 ${q.hot.n-1}곳` : srcLabel(q);
+        return `<li class="dg-item${q.status==='done'?' heard':''}">
+          <span class="dg-no">${k+1}</span>
+          <div class="dg-body" onclick="toggleDg(${q.id})">
+            <div class="dg-title">${esc(s.headline || q.title)}</div>
+            <ul class="dg-sum">${lines.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
+            <div class="dg-meta">${hotLabel(q.hot) ? `<span class="hot-tag">${hotLabel(q.hot)}</span>` : ''}${intl ? '<span class="intl-tag">해외</span>' : ''}${q.srcKind==='info' ? '<span class="info-tag">정보</span>' : ''}
+              <span>${esc(srcTxt)}</span>${q.feedDate ? `<span>· ${relTime(q.feedDate)}</span>` : ''}${q.status==='done' ? '<span>· 들음</span>' : ''}
+              ${s.summary.length > 2 && !open ? `<span class="dg-more">더보기</span>` : ''}</div>
+            ${open ? `${intl && s.headline && s.headline!==q.title ? `<div class="dg-orig">원문 제목: ${esc(q.title)}</div>` : ''}
+              ${q.altContent ? `<div class="dg-orig">${esc(srcLabel(q))}·${esc(q.altFrom2||'')} 기사를 함께 요약했어요</div>` : ''}
+              <div class="dg-acts" onclick="event.stopPropagation()">
+                <button class="act" onclick="playBriefing([${q.id}])">${ic('headphones')}<span>요약 듣기</span></button>
+                <button class="act" onclick="playById(${q.id})">${ic('play','fill')}<span>${intl ? '원문 듣기(영어)' : '기사 듣기'}</span></button>
+                <button class="act" onclick="openViewerById(${q.id},'text')">${ic('maximize')}<span>본문</span></button>
+              </div>` : ''}
+          </div>
+        </li>`;
+      }).join('') + `</ol></section>`;
+  });
+  return h;
+}
 function bcardHtml(q){
   const c = catOf(q), col = CATS[c].color, s = q.sum;
   return `<div class="card bcard" style="--c:${col}">
@@ -2376,6 +2523,7 @@ function bcardHtml(q){
     <div class="bc-title" onclick="openViewerById(${q.id},'text')">${esc(q.title)}</div>
     ${s.headline && s.headline !== q.title ? `<div class="bc-head">${esc(s.headline)}</div>` : ''}
     <ul class="bc-sum">${s.summary.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
+    ${s.tr ? `<div class="bc-cov">${ic('globe')}해외 글 · 원문 제목: ${esc(q.title)}</div>` : ''}
     ${q.hot && q.hot.n >= 2 ? `<div class="bc-cov">${ic('list')}${esc(q.hot.srcs.join(' · '))}에서 다룬 소식</div>` : ''}
     ${s.keywords && s.keywords.length ? `<div class="bc-kw">${s.keywords.map(k=>`<span>#${esc(k)}</span>`).join('')}</div>` : ''}
     <div class="q-acts">
@@ -2548,7 +2696,14 @@ function hotLabel(h){ return !h ? '' : h.n >= 2 ? `${h.n}곳 보도` : h.days >=
 
 function lsGet(k, d){ try{ const v = JSON.parse(localStorage.getItem(k)||'null'); return v==null ? d : v; }catch(_){ return d; } }
 function lsSet(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(_){} }
-function getDaily(){ return Object.assign({ on:true, perCat:3 }, lsGet(LS_DAILY, {})); }
+const PERCAT_DEFAULT = { society:3, ai:5, beauty:3 };   // AI 는 해외 자료까지 보도록 기본 5개
+function getDaily(){
+  const d = Object.assign({ on:true }, lsGet(LS_DAILY, {}));
+  // 예전 설정(모든 분야 같은 숫자)을 분야별 숫자로 옮긴다
+  if(typeof d.perCat === 'number') d.perCat = { society:d.perCat, ai:Math.max(d.perCat, 5), beauty:d.perCat };
+  d.perCat = Object.assign({}, PERCAT_DEFAULT, d.perCat || {});
+  return d;
+}
 function getSources(){
   const mine = lsGet(LS_SRC, null);
   if(!Array.isArray(mine)) return DEFAULT_SOURCES.map(d=>({ ...d, on:true }));
@@ -2598,7 +2753,7 @@ async function refreshFeeds(force){
       f.items.forEach(it=>{
         if(it.date && it.date < cutoff) return;
         const prev = hist.get(it.link);
-        hist.set(it.link, { title:it.title, link:it.link, src:x.name, cat:x.cat, date:it.date||0, seenAt: prev ? prev.seenAt : Date.now(), desc: it.desc||'' });
+        hist.set(it.link, { title:it.title, link:it.link, src:x.name, cat:x.cat, lang:x.lang||'ko', kind:x.kind||'news', date:it.date||0, seenAt: prev ? prev.seenAt : Date.now(), desc: it.desc||'' });
       });
     });
     const keepAfter = Date.now() - 4*864e5;
@@ -2609,7 +2764,7 @@ async function refreshFeeds(force){
     const enabled = new Set(srcs.map(x=>x.name));
     const picks = [];
     for(const c of ['society','ai','beauty']){
-      const need = Math.max(0, daily.perCat - (st.added[c]||0));
+      const need = Math.max(0, (daily.perCat[c]||0) - (st.added[c]||0));
       if(!need) continue;
       // 이미 담았던 소식(묶음 안의 어떤 글이든)은 다시 담지 않는다
       const cand = clusters.filter(k=>k.cat===c && !k.members.some(m=>seen.has(m.link)))
@@ -2630,14 +2785,14 @@ async function refreshFeeds(force){
       order.forEach(({ k, fresh })=>{
         const rep_ = fresh[0];
         const alts = k.members.filter(m=>m.link!==rep_.link && m.src!==rep_.src).map(m=>m.link).slice(0, 3);
-        picks.push({ title:rep_.title, link:rep_.link, desc:rep_.desc, date:rep_.date, src:{ name:rep_.src }, cat:c, alts,
+        picks.push({ title:rep_.title, link:rep_.link, desc:rep_.desc, date:rep_.date, src:{ name:rep_.src, lang:rep_.lang, kind:rep_.kind }, cat:c, alts,
                      hot: isHot(k) ? { n:k.srcs.length, a:k.members.length, days:k.days, srcs:k.srcs.slice(0, 6) } : null });
         k.members.forEach(m=>seen.add(m.link));
       });
     }
     picks.forEach(it=>{
       Q.push({ id:++uid, url:it.link, title:it.title, content:'', status:'pending', err:'', pos:0,
-               src:'feed', srcName:it.src.name, feedCat:it.cat, feedDesc:it.desc||'', feedDate:it.date||0, addedAt:Date.now(),
+               src:'feed', srcName:it.src.name, srcLang:it.src.lang||'ko', srcKind:it.src.kind||'news', feedCat:it.cat, feedDesc:it.desc||'', feedDate:it.date||0, addedAt:Date.now(),
                alts: it.alts, hot: it.hot });
       seen.add(it.link);
       st.added[it.cat] = (st.added[it.cat]||0) + 1;
@@ -2679,7 +2834,8 @@ function renderFeedSettings(){
   const d = getDaily(), st = getFeedState();
   $('dailySw').classList.toggle('on', d.on);
   $('feedWhen').textContent = feedBusy ? '확인 중…' : fmtWhen(st.at) + (st.at ? ' 확인' : '');
-  $('perCatSeg').innerHTML = [1,2,3,5].map(n=>`<button class="${d.perCat===n?'on':''}" onclick="setPerCat(${n})">${n}</button>`).join('');
+  $('perCatSeg').innerHTML = ['society','ai','beauty'].map(c=>`<div class="set-row"><span class="pc-name"><span class="cat-dot" style="--c:${CATS[c].color}"></span>${CATS[c].name}</span>
+    <div class="mini-seg">${[0,1,3,5,8].map(n=>`<button class="${d.perCat[c]===n?'on':''}" onclick="setPerCat('${c}',${n})">${n||'끔'}</button>`).join('')}</div></div>`).join('');
   if(!$('srcCatSeg').dataset.c) $('srcCatSeg').dataset.c = 'society';
   const sc = $('srcCatSeg').dataset.c;
   $('srcCatSeg').innerHTML = ['society','ai','beauty'].map(c=>`<button class="${c===sc?'on':''}" onclick="pickSrcCat('${c}')">${CATS[c].name}</button>`).join('');
@@ -2691,7 +2847,7 @@ function renderFeedSettings(){
       const cls = !x.on || !s ? '' : s.ok ? 'ok' : 'err';
       return `<div class="src-row${x.on?'':' off'}">
         <button class="sw${x.on?' on':''}" onclick="toggleSource('${x.id}')" aria-label="${esc(x.name)} 켜기/끄기"></button>
-        <div class="src-info"><div class="src-name">${esc(x.name)}</div><div class="src-st ${cls}">${esc(stTxt)}</div></div>
+        <div class="src-info"><div class="src-name">${esc(x.name)}${x.lang==='en' ? ' <span class="intl-tag">해외</span>' : ''}${x.kind==='info' ? ' <span class="info-tag">정보</span>' : ''}</div><div class="src-st ${cls}">${esc(stTxt)}</div></div>
         ${x.custom ? `<button class="src-del" onclick="removeSource('${x.id}')" aria-label="삭제">${ic('x')}</button>` : ''}
       </div>`;
     }).join('');
@@ -2699,7 +2855,7 @@ function renderFeedSettings(){
   }).join('');
 }
 function toggleDaily(){ const d = getDaily(); d.on = !d.on; lsSet(LS_DAILY, d); haptic(8); renderFeedSettings(); renderFeedBar(); if(d.on) refreshFeeds(false); }
-function setPerCat(n){ const d = getDaily(); d.perCat = n; lsSet(LS_DAILY, d); haptic(6); renderFeedSettings(); }
+function setPerCat(c, n){ const d = getDaily(); d.perCat[c] = n; lsSet(LS_DAILY, d); haptic(6); renderFeedSettings(); }
 function pickSrcCat(c){ $('srcCatSeg').dataset.c = c; renderFeedSettings(); }
 function toggleSource(id){
   const list = getSources(); const x = list.find(y=>y.id===id); if(!x) return;

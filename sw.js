@@ -1,4 +1,4 @@
-const CACHE = 'article-reader-v17';
+const CACHE = 'article-reader-v18';
 // 미리 받아둔 음성 보관함 — 배포할 때마다 지워지면 안 된다
 const KEEP = ['tts-audio-v1'];
 const SHELL = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
